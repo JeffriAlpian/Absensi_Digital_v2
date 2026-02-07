@@ -1,72 +1,128 @@
+# 🏫 Sistem Absensi Sekolah Berbasis RFID (V2)
 
+Sistem manajemen kehadiran siswa dan guru real-time menggunakan kartu RFID, dibangun dengan Laravel. Aplikasi ini mencakup dashboard statistik, rekapitulasi kehadiran, dan portal khusus siswa/wali murid.
 
+![Status Project](https://img.shields.io/badge/Status-Active-success)
+![Laravel](https://img.shields.io/badge/Laravel-10.x-red)
+![PHP](https://img.shields.io/badge/PHP-8.1+-blue)
 
+## 🌟 Fitur Utama
 
+* **Multi-Role Auth:** Admin, Guru, dan Siswa.
+* **Real-time Attendance:** Tap kartu RFID untuk Masuk/Pulang.
+* **Dashboard Statistik:**
+    * Grafik tren kehadiran 7 hari terakhir.
+    * Pie chart komposisi kehadiran (Hadir, Sakit, Izin, Alpha).
+    * Log aktivitas terbaru.
+* **Portal Siswa:**
+    * Melihat riwayat absensi pribadi per bulan.
+    * Ringkasan statistik kehadiran siswa.
+* **Rekapitulasi:** Export laporan kehadiran harian/bulanan.
 
+## 🛠️ Teknologi yang Digunakan
 
+* **Backend:** Laravel Framework
+* **Database:** MySQL
+* **Frontend:** Blade Templates, Chart.js (untuk grafik)
+* **Build Tool:** Vite (untuk compile asset CSS/JS)
+* **Hardware Support:** Support input RFID Reader (via USB/Serial emulation)
 
+---
 
+## 💻 Instalasi Lokal (Development)
 
+Ikuti langkah ini untuk menjalankan project di komputer lokal (Laptop/PC):
 
+1.  **Clone Repositori**
+    ```bash
+    git clone [https://github.com/username-anda/nama-repo.git](https://github.com/username-anda/nama-repo.git)
+    cd nama-repo
+    ```
 
+2.  **Install Dependencies**
+    ```bash
+    composer install
+    npm install
+    ```
 
+3.  **Konfigurasi Environment**
+    * Duplikat file `.env.example` menjadi `.env`
+    * Atur koneksi database:
+        ```env
+        DB_DATABASE=nama_database_anda
+        DB_USERNAME=root
+        DB_PASSWORD=
+        ```
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+4.  **Generate Key & Migrasi**
+    ```bash
+    php artisan key:generate
+    php artisan migrate --seed
+    ```
+    *(Gunakan `--seed` jika ada data dummy)*
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+5.  **Jalankan Project**
+    * Terminal 1: `php artisan serve`
+    * Terminal 2: `npm run dev`
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Panduan Deployment ke cPanel (Shared Hosting)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Karena menggunakan Shared Hosting, struktur folder harus dipisah antara **Core** (Logic) dan **Public** (Asset).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. Persiapan File
+1.  Jalankan `npm run build` di local untuk compile asset.
+2.  Compress (Zip) seluruh project (kecuali `node_modules`).
 
-## Learning Laravel
+### 2. Struktur Folder di Hosting
+Buat struktur seperti ini agar aman:
+* `/home/user/laravel_app` (Folder Core - berisi app, config, storage, vendor, dll)
+* `/home/user/public_html` (Folder Public - berisi index.php, build, assets)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 3. Konfigurasi `index.php`
+Edit file `public_html/index.php`. Sesuaikan path agar mengarah ke folder Core:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```php
+// Sesuaikan path ke folder core
+if (file_exists($maintenance = __DIR__.'/../laravel_app/storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+require __DIR__.'/../laravel_app/vendor/autoload.php';
+$app = require_once __DIR__.'/../laravel_app/bootstrap/app.php';
 
-## Laravel Sponsors
+// PENTING: Set public path
+$app->usePublicPath(__DIR__);
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+4. Mengatasi Masalah Symlink (Storage)
+Jika fitur symlink PHP dimatikan hosting, gunakan Cron Job:
 
-### Premium Partners
+Masuk menu Cron Jobs di cPanel.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Buat cron baru (Once per minute).
 
-## Contributing
+Command:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Bash
+ln -s /home/username/laravel_app/storage/app/public /home/username/public_html/storage
+Tunggu 1 menit, cek apakah folder storage muncul di public_html.
 
-## Code of Conduct
+Hapus Cron Job tersebut segera setelah berhasil.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+5. Mengatasi "Vite Manifest Not Found"
+Pastikan folder build hasil npm run build di local sudah di-upload ke dalam public_html. Struktur harus: public_html/build/manifest.json.
 
-## Security Vulnerabilities
+🐛 Troubleshooting Umum
+Q: Error 500 Server Error
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Cek permission folder storage dan bootstrap/cache di Core. Ubah ke 755 atau 775.
 
-## License
+Pastikan path di index.php sudah benar (jumlah ../ nya pas).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Pastikan ekstensi PHP fileinfo, pdo, mbstring aktif di cPanel.
+
+Q: Gambar tidak muncul
+
+Hapus folder storage di public_html.
+
+Jalankan ulang trik Symlink via Cron Job di atas.
