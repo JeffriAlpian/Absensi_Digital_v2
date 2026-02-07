@@ -18,8 +18,8 @@ class AbsensiRfidController extends Controller
     {
         // Set Timezone & Waktu
         $now = Carbon::now('Asia/Jakarta');
-        $tanggal = $now->format('Y-m-d');
-        $jam = $now->format('H:i:s');
+        $tanggal = $request->tanggal ? $request->tanggal : $now->format('Y-m-d');
+        $jam = $request->jam ? $request->jam : $now->format('H:i:s');
         
         // --- 1. VALIDASI INPUT & API KEY ---
         if (!$request->has(['api_key', 'uid'])) {

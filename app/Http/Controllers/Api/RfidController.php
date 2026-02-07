@@ -3,86 +3,146 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\KartuRfid;
 use App\Models\Siswa;
-use Illuminate\Support\Facades\DB;
+use App\Models\Guru;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class RfidController extends Controller
 {
-    public function getSiswaList(Request $request)
+    public function testConnection()
     {
-        // 1. Validasi API Key
-        // Sebaiknya simpan secret ini di .env, tapi hardcode dulu oke untuk sekarang
-        $secret = env('RFID_API_SECRET');
-
-        // Ambil parameter ?key=... dari URL
-        if ($request->query('key') !== $secret) {
-            return response()->json(['success' => 'error', 'message' => 'Invalid API Key']);
-        }
-
-        // 2. Query Database (Pengganti Native SQL kamu)
-        // Kita cari siswa aktif yang TIDAK ada di tabel kartu_rfid
-        $siswa = Siswa::leftJoin('kartu_rfid', 'siswa.id', '=', 'kartu_rfid.siswa_id')
-            ->where('siswa.status', 'aktif')
-            ->whereNull('kartu_rfid.id') // Filter yang belum punya kartu (Join-nya NULL)
-            ->orderBy('siswa.nama', 'asc')
-            ->select('siswa.id', 'siswa.nama', 'siswa.nisn') // Ambil kolom yang dibutuhkan saja
-            ->get();
-
-        // 3. Return JSON
-        // Laravel otomatis mengubah Collection jadi JSON
-        return response()->json($siswa);
-    }
-
-    public function getKelasList(Request $request)
-    {
-        // 1. Validasi API Key
-        $secret = env('RFID_API_SECRET');
-        if ($request->query('key') !== $secret) {
-            return response()->json(['success' => 'error', 'message' => 'Invalid API Key']);
-        }
-        // 2. Query Database untuk ambil daftar kelas
-        $kelas = DB::table('kelas')
-            ->orderBy('nama_kelas', 'asc')
-            ->select('id', 'nama_kelas')
-            ->get();
-        // 3. Return JSON
-        return response()->json($kelas);
+        return response()->json([
+            'success' => true,
+            'message' => 'API Connected Successfully',
+            'timestamp' => now()->toDateTimeString()
+        ]);
     }
 
     public function registerRfid(Request $request)
     {
-        // 1. Validasi API Key
-        $secret = env('RFID_API_SECRET');
-        if ($request->query('key') !== $secret) {
-            return response()->json(['success' => 'error', 'message' => 'Invalid API Key']);
-        }
-
-        // 2. Validasi Input
-        $siswa_id = intval($request->input('siswa_id'));
-        $device_id = intval($request->input('device_id'));
-        $uid = trim($request->input('uid'));
-        if (empty($siswa_id) || empty($uid)) {
-            return response()->json(['success' => 'error', 'message' => 'Data tidak lengkap']);
-        }
-        // 3. Cek Duplikat
-        $exists = DB::table('kartu_rfid')->where('uid', $uid)->exists();
-        if ($exists) {
-            return response()->json(['success' => 'error', 'message' => 'Kartu ini sudah terdaftar!']);
-        }
-        // 4. Simpan ke Database
-        $inserted = DB::table('kartu_rfid')->insert([
-            'uid' => $uid,
-            'siswa_id' => $siswa_id,
-            'device_id' => $device_id,
-            'registed_at' => now()
+        $validator = Validator::make($request->all(), [
+            'uid' => 'required|string|max:50|unique:kartu_rfid,uid',
+            'siswa_id' => 'nullable|exists:siswa,id',
+            'guru_id' => 'nullable|exists:guru,id',
+            'device_id' => 'required|exists:rfid_model,id',
         ]);
-        if ($inserted) {
-            return response()->json(['success' => 'success', 'message' => 'Kartu berhasil didaftarkan']);
-        } else {
-            return response()->json(['success' => 'error', 'message' => 'Gagal menyimpan data']);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
+        // Cek apakah UID sudah terdaftar
+        if (KartuRfid::where('uid', $request->uid)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'UID sudah terdaftar'
+            ], 400);
+        }
+
+        // Validasi: siswa_id dan guru_id tidak boleh keduanya diisi
+        if ($request->has('siswa_id') && $request->has('guru_id')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya boleh memilih siswa ATAU guru, tidak keduanya'
+            ], 400);
+        }
+
+        // Cek apakah siswa sudah memiliki kartu RFID
+        if ($request->has('siswa_id') && $request->siswa_id) {
+            $existing = KartuRfid::where('siswa_id', $request->siswa_id)->first();
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Siswa ini sudah memiliki kartu RFID'
+                ], 400);
+            }
+        }
+
+        // Cek apakah guru sudah memiliki kartu RFID
+        if ($request->has('guru_id') && $request->guru_id) {
+            $existing = KartuRfid::where('guru_id', $request->guru_id)->first();
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Guru ini sudah memiliki kartu RFID'
+                ], 400);
+            }
+        }
+
+        try {
+            $kartuRfid = KartuRfid::create([
+                'uid' => strtoupper($request->uid),
+                'siswa_id' => $request->siswa_id,
+                'guru_id' => $request->guru_id,
+                'device_id' => $request->device_id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kartu RFID berhasil didaftarkan',
+                'data' => [
+                    'id' => $kartuRfid->id,
+                    'uid' => $kartuRfid->uid,
+                    'siswa_id' => $kartuRfid->siswa_id,
+                    'guru_id' => $kartuRfid->guru_id,
+                    'device_id' => $kartuRfid->device_id,
+                    'registered_at' => $kartuRfid->registed_at,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+            ], 500);
+        }
     }
-    
+
+    public function index(Request $request)
+    {
+        $query = KartuRfid::with(['siswa', 'guru', 'device'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->has('device_id')) {
+            $query->where('device_id', $request->device_id);
+        }
+
+        if ($request->has('siswa_id')) {
+            $query->where('siswa_id', $request->siswa_id);
+        }
+
+        if ($request->has('guru_id')) {
+            $query->where('guru_id', $request->guru_id);
+        }
+
+        $kartuRfid = $query->paginate(20);
+
+        return response()->json([
+            'success' => true,
+            'data' => $kartuRfid
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $kartuRfid = KartuRfid::findOrFail($id);
+            $kartuRfid->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kartu RFID berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus kartu: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

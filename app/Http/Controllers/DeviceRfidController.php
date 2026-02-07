@@ -20,7 +20,7 @@ class DeviceRfidController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'device_name' => 'required|unique:rfid_model,rfid_name',
+            'rfid_name' => 'required|unique:rfid_model,rfid_name',
         ]);
 
         // 1. Ambil semua data request
@@ -55,14 +55,14 @@ class DeviceRfidController extends Controller
     {
         $request->validate([
             // Unique ignore ID saat ini
-            'device_name' => 'required|unique:rfid_model,rfid_name,'.$id,
+            'rfid_name' => 'required|unique:rfid_model,rfid_name,'.$id,
         ]);
 
         $device = RfidModel::findOrFail($id);
         
         // Kita hanya update nama device, API KEY biarkan tetap (agar tidak berubah-ubah)
         $device->update([
-            'rfid_name' => $request->device_name
+            'rfid_name' => $request->rfid_name
         ]);
 
         return redirect()->route('device_rfid.index')->with('success', 'Nama Device berhasil diperbarui.');

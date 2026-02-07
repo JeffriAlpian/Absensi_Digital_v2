@@ -59,7 +59,7 @@ Build Tool: Vite
 
 1. **Clone Repository**
 ```bash
-git clone https://github.com/username/nama-repo.git
+git clone https://github.com/JeffriAlpian/Absensi_Digital_v2.git
 cd sistem-absensi-rfid
 ```
 
@@ -90,14 +90,12 @@ npm run build
 6. **Jalankan Server**
 ```bash
 php artisan serve
-# Akses: http://localhost:8000
+# Akses: http://localhost:8000 atau http://127.0.0.1:8000
 ```
 
 ### 🔐 Akun Default
 Setelah migrasi dengan seed:
-- **Admin**: admin@example.com / password
-- **Guru**: guru@example.com / password  
-- **Siswa**: siswa@example.com / password
+- **Admin**: admin / password123
 
 ## ☁️ Deployment ke Shared Hosting (cPanel)
 
@@ -240,6 +238,8 @@ POST   /api/reports/export      # Export data
    - openssl
    - tokenizer
    - xml
+   - zip
+   - imagick
 
 ### Vite Manifest Not Found
 ```bash
@@ -309,8 +309,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Nama Project - Sistem Absensi RFID Sekolah  
 Developer Team - [tim@email.com](mailto:tim@email.com)  
-Project Link: [https://github.com/username/sistem-absensi-rfid](https://github.com/username/sistem-absensi-rfid)
+Project Link: [https://github.com/JeffriAlpian/Absensi_Digital_v2.git](https://github.com/JeffriAlpian/Absensi_Digital_v2.git)
 
----
-
-**Catatan**: Sistem ini kompatibel dengan kebanyakan RFID Reader yang mensimulasikan keyboard input. Untuk hardware khusus, mungkin diperlukan penyesuaian driver.
+---.

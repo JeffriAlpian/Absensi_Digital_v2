@@ -62,11 +62,11 @@
                 @endif
 
                 <div class="flex-grow">
-                    <label for="device_name" class="block text-sm font-medium text-gray-700">Nama Device</label>
-                    <input type="text" id="device_name" name="device_name"
+                    <label for="rfid_name" class="block text-sm font-medium text-gray-700">Nama Device</label>
+                    <input type="text" id="rfid_name" name="rfid_name"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         placeholder="Contoh: Gerbang Utama, Perpustakaan" required
-                        value="{{ old('device_name', $is_edit ? $device_rfid_edit->device_name : '') }}">
+                        value="{{ old('rfid_name', $is_edit ? $device_rfid_edit->rfid_name : '') }}">
                     @if (!$is_edit)
                         <p class="text-xs text-gray-500 mt-1">*API Key akan digenerate otomatis setelah disimpan.</p>
                     @endif
@@ -141,7 +141,7 @@
                                         {{-- Tombol Hapus --}}
                                         <form action="{{ route('device_rfid.destroy', $row->id) }}" method="POST"
                                             class="inline-block"
-                                            onsubmit="return confirm('Yakin hapus device {{ $row->device_name }}?');">
+                                            onsubmit="return confirm('Yakin hapus device {{ $row->rfid_name }}?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
