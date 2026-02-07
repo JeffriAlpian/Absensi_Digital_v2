@@ -7,17 +7,21 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Guru;
 use App\Models\Siswa;
 use App\Models\Absensi;
+use App\Models\Kelas;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
         // 1. Cek Role User
         if ($user->role === 'guru') {
             return $this->dashboardGuru();
+        } elseif ($user->role === 'siswa') {
+            return $this->dashboardSiswa($request);
         }
 
         $today = Carbon::now()->format('Y-m-d');
@@ -125,6 +129,65 @@ class DashboardController extends Controller
             'totalSakit',
             'totalAlpha',
             'totalTelat'
+        ));
+    }
+
+    public function dashboardSiswa(Request $request)
+    {
+        $user = Auth::user();
+
+        // 1. Ambil Data Siswa beserta relasi Kelas
+        $siswa = Siswa::with('kelas')->where('user_id', $user->id)->first();
+
+        if (!$siswa) {
+            return redirect()->route('logout')->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        // Variabel pendukung untuk View
+        $nisn_siswa = $siswa->nisn ?? $user->username;
+
+        // 2. Ambil Filter Bulan & Tahun dari Request
+        $bulan = $request->input('bulan', date('n'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        // 3. Query History Absensi (Untuk Tabel)
+        // Kita gunakan Model Absensi tapi di-select spesifik agar kompatibel dengan view ($row->jam)
+        $absensiList = Absensi::where('siswa_id', $siswa->id)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->orderBy('tanggal', 'desc')
+            ->select('*', 'jam_masuk as jam') // Alias jam_masuk jadi 'jam'
+            ->get();
+
+        // 4. Hitung Ringkasan (H, S, I, A) untuk Kotak Statistik
+        // Kita pakai grouping query agar efisien
+        $stats = Absensi::where('siswa_id', $siswa->id)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        // Gabungkan dengan default 0 (agar tidak error jika kosong)
+        $ringkasanBulanIni = array_merge([
+            'H' => 0,
+            'S' => 0,
+            'I' => 0,
+            'A' => 0
+        ], $stats);
+
+        // Tambahan: Profil sekolah (opsional, set null jika belum ada model Profil)
+        $profil = null;
+
+        // Return ke view yang baru Anda buat
+        // Pastikan nama filenya sesuai lokasi, misal: resources/views/dashboard/siswa.blade.php
+        return view('dashboard.siswa.index', compact(
+            'siswa',
+            'nisn_siswa',
+            'absensiList',
+            'ringkasanBulanIni',
+            'profil'
         ));
     }
 }

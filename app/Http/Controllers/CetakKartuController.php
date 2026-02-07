@@ -32,8 +32,6 @@ class CetakKartuController extends Controller
                 'no_induk' => $siswa->nis . ' / ' . $siswa->nisn,
                 'baris_3_label' => 'TTL', // Label baris ke-3
                 'baris_3_value' => $siswa->tempat_lahir . ', ' . date('d/m/Y', strtotime($siswa->tanggal_lahir)),
-                'baris_4_label' => 'Kelas',
-                'baris_4_value' => $siswa->kelas->nama_kelas ?? '-',
                 'qr_code' => $siswa->nisn // Kode untuk cari gambar QR
             ];
         });
@@ -160,13 +158,6 @@ class CetakKartuController extends Controller
             $pdf->Cell($labelW, $lineH, $data->baris_3_label, 0, 0, 'L');
             $pdf->Cell($gap, $lineH, ':', 0, 0, 'C');
             $pdf->Cell($valW, $lineH, ' ' . $data->baris_3_value, 0, 1, 'L');
-
-            // Baris 4 (Kelas / Mapel)
-            $curY += $lineH;
-            $pdf->SetXY($startX, $curY);
-            $pdf->Cell($labelW, $lineH, $data->baris_4_label, 0, 0, 'L');
-            $pdf->Cell($gap, $lineH, ':', 0, 0, 'C');
-            $pdf->Cell($valW, $lineH, ' ' . $data->baris_4_value, 0, 1, 'L');
 
             // 4. Render QR Code
             $qr_path = public_path('storage/qr/' . $data->qr_code . '.png');

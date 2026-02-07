@@ -18,11 +18,11 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->m
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index')->middleware('auth');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index')->middleware('auth');
+
 Route::middleware(['auth', 'role:admin,guru'])->group(function () {
 
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-    
     Route::post('/absensi/manual/store', [AbsensiController::class, 'storeManual'])->name('absensi.manual.storeManual');
     Route::post('/absensi/manual/storeAll', [AbsensiController::class, 'storeAll'])->name('absensi.manual.storeAll');
 
@@ -30,7 +30,7 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
     Route::get('/dashboardGuru/scan', [GuruController::class, 'indexGuruScan'])->name('dashboard.guru.scan.index');
 
     Route::post('/scan/storeSiswa', [AbsensiController::class, 'storeSiswa'])->name('scan.storeSiswa');
-    
+
     // Route spesifik menu guru
     Route::get('/dashboardGuru/absen', [GuruController::class, 'indexGuruabsen'])->name('dashboard.guru.absen.index');
     Route::post('/dashboardGuru/absen/store', [AbsensiController::class, 'storeGuru'])->name('dashboard.guru.absen.store');
