@@ -1,128 +1,316 @@
-# 🏫 Sistem Absensi Sekolah Berbasis RFID (V2)
+# 📚 Sistem Absensi Sekolah Berbasis RFID (V2)
 
-Sistem manajemen kehadiran siswa dan guru real-time menggunakan kartu RFID, dibangun dengan Laravel. Aplikasi ini mencakup dashboard statistik, rekapitulasi kehadiran, dan portal khusus siswa/wali murid.
+Sistem manajemen kehadiran real-time untuk siswa dan guru menggunakan kartu RFID, dibangun dengan Laravel. Dilengkapi dashboard statistik, rekapitulasi kehadiran, dan portal khusus siswa/wali murid.
 
 ![Status Project](https://img.shields.io/badge/Status-Active-success)
 ![Laravel](https://img.shields.io/badge/Laravel-10.x-red)
 ![PHP](https://img.shields.io/badge/PHP-8.1+-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🌟 Fitur Utama
+## ✨ Fitur Utama
 
-* **Multi-Role Auth:** Admin, Guru, dan Siswa.
-* **Real-time Attendance:** Tap kartu RFID untuk Masuk/Pulang.
-* **Dashboard Statistik:**
-    * Grafik tren kehadiran 7 hari terakhir.
-    * Pie chart komposisi kehadiran (Hadir, Sakit, Izin, Alpha).
-    * Log aktivitas terbaru.
-* **Portal Siswa:**
-    * Melihat riwayat absensi pribadi per bulan.
-    * Ringkasan statistik kehadiran siswa.
-* **Rekapitulasi:** Export laporan kehadiran harian/bulanan.
+### 👥 Multi-Role Authentication
+- **Admin**: Manajemen pengguna, kelas, dan laporan lengkap
+- **Guru**: Pantau kehadiran siswa, input izin/sakit
+- **Siswa**: Lihat riwayat kehadiran pribadi
 
-## 🛠️ Teknologi yang Digunakan
+### 📊 Dashboard Real-time
+- Grafik tren kehadiran 7 hari terakhir (Chart.js)
+- Pie chart komposisi kehadiran (Hadir, Sakit, Izin, Alpha)
+- Log aktivitas terbaru (tap terakhir)
+- Statistik harian/bulanan
 
-* **Backend:** Laravel Framework
-* **Database:** MySQL
-* **Frontend:** Blade Templates, Chart.js (untuk grafik)
-* **Build Tool:** Vite (untuk compile asset CSS/JS)
-* **Hardware Support:** Support input RFID Reader (via USB/Serial emulation)
+### 🎫 Sistem Absensi RFID
+- Tap kartu RFID untuk catat masuk/pulang
+- Validasi: cegah double tap masuk
+- Notifikasi: status kehadiran (tepat waktu, telat)
+- Support USB/Serial RFID Reader
 
----
+### 📈 Portal Siswa
+- Riwayat absensi per bulan dengan filter
+- Ringkasan statistik kehadiran pribadi
+- Export data kehadiran (PDF/Excel)
 
-## 💻 Instalasi Lokal (Development)
+### 📋 Rekapitulasi & Laporan
+- Laporan harian/bulanan per kelas
+- Export ke Excel/PDF
+- Filter berdasarkan periode, kelas, status
 
-Ikuti langkah ini untuk menjalankan project di komputer lokal (Laptop/PC):
+## 🏗️ Arsitektur Sistem
 
-1.  **Clone Repositori**
-    ```bash
-    git clone [https://github.com/username-anda/nama-repo.git](https://github.com/username-anda/nama-repo.git)
-    cd nama-repo
-    ```
+```
+Backend: Laravel 10.x
+Database: MySQL 8.x
+Frontend: Blade Templates, Bootstrap 5
+Charts: Chart.js
+Build Tool: Vite
+```
 
-2.  **Install Dependencies**
-    ```bash
-    composer install
-    npm install
-    ```
+## 🚀 Instalasi & Konfigurasi
 
-3.  **Konfigurasi Environment**
-    * Duplikat file `.env.example` menjadi `.env`
-    * Atur koneksi database:
-        ```env
-        DB_DATABASE=nama_database_anda
-        DB_USERNAME=root
-        DB_PASSWORD=
-        ```
+### Prasyarat
+- PHP 8.1+
+- Composer
+- Node.js 18+
+- MySQL 5.7+
+- Git
 
-4.  **Generate Key & Migrasi**
-    ```bash
-    php artisan key:generate
-    php artisan migrate --seed
-    ```
-    *(Gunakan `--seed` jika ada data dummy)*
+### 📥 Instalasi (Development)
 
-5.  **Jalankan Project**
-    * Terminal 1: `php artisan serve`
-    * Terminal 2: `npm run dev`
+1. **Clone Repository**
+```bash
+git clone https://github.com/username/nama-repo.git
+cd sistem-absensi-rfid
+```
 
----
+2. **Install Dependencies**
+```bash
+composer install
+npm install
+```
 
-## 🚀 Panduan Deployment ke cPanel (Shared Hosting)
+3. **Konfigurasi Environment**
+```bash
+cp .env.example .env
+# Edit file .env sesuai konfigurasi database Anda
+```
 
-Karena menggunakan Shared Hosting, struktur folder harus dipisah antara **Core** (Logic) dan **Public** (Asset).
+4. **Generate Key & Setup Database**
+```bash
+php artisan key:generate
+php artisan migrate --seed
+```
 
-### 1. Persiapan File
-1.  Jalankan `npm run build` di local untuk compile asset.
-2.  Compress (Zip) seluruh project (kecuali `node_modules`).
+5. **Compile Assets**
+```bash
+npm run build
+# Untuk development: npm run dev
+```
 
-### 2. Struktur Folder di Hosting
-Buat struktur seperti ini agar aman:
-* `/home/user/laravel_app` (Folder Core - berisi app, config, storage, vendor, dll)
-* `/home/user/public_html` (Folder Public - berisi index.php, build, assets)
+6. **Jalankan Server**
+```bash
+php artisan serve
+# Akses: http://localhost:8000
+```
 
-### 3. Konfigurasi `index.php`
-Edit file `public_html/index.php`. Sesuaikan path agar mengarah ke folder Core:
+### 🔐 Akun Default
+Setelah migrasi dengan seed:
+- **Admin**: admin@example.com / password
+- **Guru**: guru@example.com / password  
+- **Siswa**: siswa@example.com / password
 
+## ☁️ Deployment ke Shared Hosting (cPanel)
+
+### 📁 Struktur Folder
+```
+/home/username/
+├── laravel_app/          # Folder Core (private)
+│   ├── app/
+│   ├── bootstrap/
+│   ├── config/
+│   ├── database/
+│   ├── storage/
+│   └── vendor/
+└── public_html/          # Folder Public
+    ├── index.php         # Modified index.php
+    ├── build/            # Compiled assets
+    └── storage -> ../laravel_app/storage/app/public  # Symlink
+```
+
+### 📋 Langkah Deployment
+
+1. **Upload File Core**
+   - Upload seluruh isi project (kecuali `node_modules`, `public/build`) ke `laravel_app`
+
+2. **Upload File Public**
+   - Upload isi folder `public` ke `public_html`
+   - Pastikan file `index.php` sudah dimodifikasi (lihat bagian berikut)
+
+3. **Konfigurasi `index.php`**
+   Edit `public_html/index.php`:
 ```php
-// Sesuaikan path ke folder core
-if (file_exists($maintenance = __DIR__.'/../laravel_app/storage/framework/maintenance.php')) {
-    require $maintenance;
+<?php
+// Arahkan ke folder core Laravel
+$corePath = __DIR__ . '/../laravel_app';
+
+require $corePath . '/vendor/autoload.php';
+$app = require_once $corePath . '/bootstrap/app.php';
+
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+
+$response = $kernel->handle(
+    $request = Illuminate\Http\Request::capture()
+);
+
+$response->send();
+$kernel->terminate($request, $response);
+```
+
+4. **Konfigurasi `.env`**
+   Edit `.env` di folder `laravel_app`:
+```env
+APP_URL=https://domain-anda.com
+APP_ENV=production
+
+# Koneksi Database
+DB_HOST=localhost
+DB_DATABASE=nama_database
+DB_USERNAME=username_db
+DB_PASSWORD=password_db
+
+# Asset URL
+ASSET_URL=https://domain-anda.com
+```
+
+5. **Setup Symlink Storage**
+   Jika symlink tidak bekerja, gunakan cron job:
+   ```bash
+   ln -s /home/username/laravel_app/storage/app/public /home/username/public_html/storage
+   ```
+   
+   Atau buat folder manual:
+   - Buat folder `public_html/storage`
+   - Ubah path di `laravel_app/config/filesystems.php`:
+   ```php
+   'public' => [
+       'driver' => 'local',
+       'root' => '/home/username/public_html/storage',
+       'url' => env('APP_URL').'/storage',
+       'visibility' => 'public',
+   ],
+   ```
+
+6. **Permission Folder**
+```bash
+chmod -R 755 /home/username/laravel_app/storage
+chmod -R 755 /home/username/laravel_app/bootstrap/cache
+```
+
+7. **Optimasi**
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+## 🔧 Integrasi RFID Reader
+
+### Konfigurasi Hardware
+1. Hubungkan RFID Reader via USB
+2. Reader akan terdeteksi sebagai keyboard/COM port
+3. Format data: [UID_KARTU][ENTER]
+
+### Testing Reader
+```javascript
+// Contoh script testing di browser
+document.addEventListener('keypress', function(e) {
+    if(e.key === 'Enter') {
+        let uid = document.getElementById('rfid-input').value;
+        console.log('RFID UID:', uid);
+        // Kirim ke API /api/attendance/tap
+    }
+});
+```
+
+## 📊 API Endpoints
+
+### Absensi
+```
+POST   /api/attendance/tap      # Tap kartu RFID
+GET    /api/attendance/today    # Data kehadiran hari ini
+GET    /api/attendance/monthly  # Data bulanan
+```
+
+### Laporan
+```
+GET    /api/reports/daily       # Laporan harian
+GET    /api/reports/monthly     # Laporan bulanan
+POST   /api/reports/export      # Export data
+```
+
+## 🐛 Troubleshooting
+
+### Error 500 After Deployment
+1. **Cek error log**: `laravel_app/storage/logs/laravel.log`
+2. **Permission**: Pastikan folder storage writable
+3. **PHP Extension**: Pastikan ekstensi berikut aktif:
+   - fileinfo
+   - mbstring
+   - pdo_mysql
+   - openssl
+   - tokenizer
+   - xml
+
+### Vite Manifest Not Found
+```bash
+# Jalankan di local sebelum upload
+npm run build
+# Upload folder `public/build` ke `public_html/build`
+```
+
+### Symlink Tidak Bekerja
+1. Alternatif 1: Upload manual ke `public_html/storage`
+2. Alternatif 2: Ubah konfigurasi filesystem (lihat bagian Deployment)
+3. Alternatif 3: Gunakan plugin cPanel "File Manager" → "Create Symbolic Link"
+
+### Database Connection Error
+1. Pastikan kredensial di `.env` benar
+2. Cek MySQL remote connection di cPanel
+3. Pastikan prefix database benar (biasanya `username_`)
+
+## 🔐 Keamanan
+
+### Best Practices
+1. **Ganti password default** setelah instalasi
+2. **Enable HTTPS** di cPanel
+3. **Restrict .env access**:
+```nginx
+location ~ /\.env {
+    deny all;
 }
-require __DIR__.'/../laravel_app/vendor/autoload.php';
-$app = require_once __DIR__.'/../laravel_app/bootstrap/app.php';
+```
+4. **Update Laravel** secara berkala
 
-// PENTING: Set public path
-$app->usePublicPath(__DIR__);
+### Backup Routine
+```bash
+# Backup database (cron job)
+mysqldump -u username -p database > backup-$(date +%Y%m%d).sql
+# Backup file
+tar -czf backup-$(date +%Y%m%d).tar.gz /home/username/laravel_app
+```
 
-4. Mengatasi Masalah Symlink (Storage)
-Jika fitur symlink PHP dimatikan hosting, gunakan Cron Job:
+## 📝 Changelog
 
-Masuk menu Cron Jobs di cPanel.
+### v2.0.0 (Current)
+- [x] Multi-role authentication
+- [x] Real-time dashboard dengan Chart.js
+- [x] Portal siswa dengan riwayat pribadi
+- [x] Export laporan Excel/PDF
+- [x] Optimasi untuk shared hosting
 
-Buat cron baru (Once per minute).
+### v1.0.0
+- Basic RFID attendance system
+- Simple admin panel
+- Daily reports
 
-Command:
+## 🤝 Kontribusi
 
-Bash
-ln -s /home/username/laravel_app/storage/app/public /home/username/public_html/storage
-Tunggu 1 menit, cek apakah folder storage muncul di public_html.
+1. Fork repository
+2. Buat feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
 
-Hapus Cron Job tersebut segera setelah berhasil.
+## 📄 Lisensi
 
-5. Mengatasi "Vite Manifest Not Found"
-Pastikan folder build hasil npm run build di local sudah di-upload ke dalam public_html. Struktur harus: public_html/build/manifest.json.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-🐛 Troubleshooting Umum
-Q: Error 500 Server Error
+## 👥 Kontak
 
-Cek permission folder storage dan bootstrap/cache di Core. Ubah ke 755 atau 775.
+Nama Project - Sistem Absensi RFID Sekolah  
+Developer Team - [tim@email.com](mailto:tim@email.com)  
+Project Link: [https://github.com/username/sistem-absensi-rfid](https://github.com/username/sistem-absensi-rfid)
 
-Pastikan path di index.php sudah benar (jumlah ../ nya pas).
+---
 
-Pastikan ekstensi PHP fileinfo, pdo, mbstring aktif di cPanel.
-
-Q: Gambar tidak muncul
-
-Hapus folder storage di public_html.
-
-Jalankan ulang trik Symlink via Cron Job di atas.
+**Catatan**: Sistem ini kompatibel dengan kebanyakan RFID Reader yang mensimulasikan keyboard input. Untuk hardware khusus, mungkin diperlukan penyesuaian driver.
