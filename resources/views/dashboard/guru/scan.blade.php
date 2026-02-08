@@ -58,7 +58,7 @@
             <div class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider ml-1">Aktivitas Terkini</h3>
 
-                <div id="result-container" class="space-y-3 min-h-[100px]">
+                <div id="result-container" class="space-y-3 min-h-25">
                     <div id="empty-state" class="text-center py-8 bg-white rounded-xl border border-dashed border-gray-300">
                         <div class="text-gray-300 mb-2">
                             <i class="fa-solid fa-clock-rotate-left text-3xl"></i>

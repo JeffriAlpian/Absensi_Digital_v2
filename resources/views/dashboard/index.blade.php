@@ -28,7 +28,7 @@
             </div>
 
             <div
-                class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4 border-green-500">
+                class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4">
                 <div>
                     <p class="text-xs font-bold text-gray-400 uppercase">Hadir Hari Ini</p>
                     <p class="text-2xl font-bold text-green-600">{{ $stats['hadir_hari_ini'] }}</p>
@@ -39,7 +39,7 @@
             </div>
 
             <div
-                class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4 border-red-500">
+                class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4">
                 <div>
                     <p class="text-xs font-bold text-gray-400 uppercase">Alpha / Belum</p>
                     <p class="text-2xl font-bold text-red-600">{{ $stats['alpha_hari_ini'] }}</p>
@@ -101,7 +101,7 @@
                 <div class="bg-white overflow-hidden shadow-sm rounded-xl border-l-4 border-yellow-400">
                     <div class="p-6">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-yellow-100 rounded-full p-3">
+                            <div class="shrink-0 bg-yellow-100 rounded-full p-3">
                                 <svg class="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -133,7 +133,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div
-                                    class="flex-shrink-0 {{ $failedCount > 0 ? 'bg-red-100' : 'bg-green-100' }} rounded-full p-3">
+                                    class="shrink-0 {{ $failedCount > 0 ? 'bg-red-100' : 'bg-green-100' }} rounded-full p-3">
                                     @if ($failedCount > 0)
                                         <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">

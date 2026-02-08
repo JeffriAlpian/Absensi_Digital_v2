@@ -14,7 +14,7 @@
 
         <div class="bg-white p-3 rounded-2xl shadow-lg border border-gray-100 mb-6 relative">
             <div id="status-lokasi"
-                class="absolute top-5 left-1/2 transform -translate-x-1/2 z-[400] bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-md text-xs font-bold text-gray-600 flex items-center gap-2">
+                class="absolute top-5 left-1/2 transform -translate-x-1/2 z-400 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-md text-xs font-bold text-gray-600 flex items-center gap-2">
                 <i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> Mencari Lokasi...
             </div>
 

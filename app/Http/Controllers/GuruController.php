@@ -183,7 +183,7 @@ class GuruController extends Controller
 
     public function updateGuruProfile(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::user(); /** @var User $user */
         $guru = Guru::where('user_id', $user->id)->first();
         $request->validate([
             'name' => 'required|string|max:255',
@@ -205,7 +205,7 @@ class GuruController extends Controller
             'password' => 'required|min:6|confirmed', // field konfirmasi harus bernama 'password_confirmation'
         ]);
 
-        $user = Auth::user();
+        $user = Auth::user(); /** @var User $user */
 
         // Cek apakah password lama benar
         if (!Hash::check($request->current_password, $user->password)) {
