@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Artisan;
 use App\Models\Guru;
 use App\Models\Siswa;
 use App\Models\Absensi;
@@ -72,14 +73,48 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // 1. Hitung Jumlah Antrean
+        $pendingCount = DB::table('jobs')->count();
+        $failedCount = DB::table('failed_jobs')->count();
+
+        // 2. Ambil List Antrean (Limit 5 saja agar tidak berat)
+        $pendingJobs = DB::table('jobs')
+            ->orderBy('id', 'asc') // Yang paling lama mengantre di atas
+            ->limit(5)
+            ->get();
+
+        // 3. Ambil List Gagal
+        $failedJobs = DB::table('failed_jobs')
+            ->orderBy('failed_at', 'desc')
+            ->limit(5)
+            ->get();
+
         return view('dashboard.index', compact(
             'stats',
             'chartLabels',
             'chartDataHadir',
             'chartDataTelat',
             'pieData',
-            'latestActivities'
+            'latestActivities',
+            'pendingCount',
+            'failedCount',
+            'pendingJobs',
+            'failedJobs'
         ));
+    }
+
+    // Fitur Tambahan: Retry Semua yang Gagal
+    public function retryAllWA()
+    {
+        Artisan::call('queue:retry all');
+        return back()->with('success', 'Semua antrean gagal sedang diproses ulang.');
+    }
+
+    // Fitur Tambahan: Hapus yang Gagal (Bersihkan)
+    public function flushFailedWA()
+    {
+        Artisan::call('queue:flush');
+        return back()->with('success', 'Semua log gagal telah dihapus.');
     }
 
     // 2. Logic Khusus Halaman Guru

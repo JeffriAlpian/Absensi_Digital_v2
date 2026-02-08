@@ -9,7 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode; // Library QR
+
+// Panggil Library Endroid
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Writer\PngWriter;
 
 class SiswaController extends Controller
 {
@@ -157,11 +162,22 @@ class SiswaController extends Controller
     }
 
     // --- Helper Functions ---
-
-    private function generateQrCode($code)
+private function generateQrCode($code)
     {
-        $imageContent = QrCode::format('png')->size(300)->generate($code);
-        Storage::disk('public')->put('qr/' . $code . '.png', $imageContent);
+        // 1. Generate QR Code Object
+        $result = Builder::create()
+            ->writer(new PngWriter()) // Menggunakan GD (Aman untuk shared hosting)
+            ->writerOptions([])
+            ->data($code)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(ErrorCorrectionLevel::Medium)
+            ->size(300)
+            ->margin(10)
+            ->build();
+
+        // 2. Simpan ke Storage (Folder: storage/app/public/qr)
+        // getString() mengubah gambar menjadi string binary agar bisa disimpan oleh Storage::put
+        Storage::disk('public')->put('qr/' . $code . '.png', $result->getString());
     }
 
 }

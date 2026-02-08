@@ -43,6 +43,9 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Whatsapp retry & flush
+    Route::post('/wa-retry', [DashboardController::class, 'retryAllWA'])->name('wa.retry');
+    Route::post('/wa-flush', [DashboardController::class, 'flushFailedWA'])->name('wa.flush');
     // Absensi QR Code Routes
     Route::get('/scan', [AbsensiController::class, 'scanIndex'])->name('absensi.scan.index');
 

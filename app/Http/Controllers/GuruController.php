@@ -12,8 +12,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
+
+
+// Panggil Library Endroid
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Writer\PngWriter;
 
 class GuruController extends Controller
 {
@@ -133,8 +139,20 @@ class GuruController extends Controller
     // Helper function
     private function generateQrCode($code)
     {
-        $imageContent = QrCode::format('png')->size(300)->generate($code);
-        Storage::disk('public')->put('qr/' . $code . '.png', $imageContent);
+        // 1. Generate QR Code Object
+        $result = Builder::create()
+            ->writer(new PngWriter()) // Menggunakan GD (Aman untuk shared hosting)
+            ->writerOptions([])
+            ->data($code)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(ErrorCorrectionLevel::Medium)
+            ->size(300)
+            ->margin(10)
+            ->build();
+
+        // 2. Simpan ke Storage (Folder: storage/app/public/qr)
+        // getString() mengubah gambar menjadi string binary agar bisa disimpan oleh Storage::put
+        Storage::disk('public')->put('qr/' . $code . '.png', $result->getString());
     }
 
 
@@ -145,7 +163,7 @@ class GuruController extends Controller
     {
         return view('dashboard.guru.scan');
     }
-    
+
 
     public function indexGuruAbsen()
     {
@@ -208,7 +226,7 @@ class GuruController extends Controller
         return view('dashboard.guru.setting');
     }
 
-    
+
     public function indexGuruRiwayat()
     {
         $guruId = Auth::user()->id; // Asumsi login sebagai user guru
