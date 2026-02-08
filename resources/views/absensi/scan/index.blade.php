@@ -92,7 +92,6 @@
 </style>
 
 <script>
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     let lastScannedCode = null;
     let scanCooldown = false;
 
@@ -170,7 +169,8 @@
         fetch("{{ route('scan.storeSiswa') }}", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json" 
+                "Content-Type": "application/json",
+            
             },
             body: JSON.stringify({ qrcode: qrMessage })
         })

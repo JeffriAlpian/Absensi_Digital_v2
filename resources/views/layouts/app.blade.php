@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Absensi V2</title>
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -161,13 +162,13 @@
                         <div id="user-dropdown"
                             class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50 transform origin-top-right transition-all">
                             <div class="px-4 py-3 border-b border-gray-100 md:hidden">
-                                <p class="text-sm font-semibold text-gray-800">{{ Auth::user()->username ?? 'User' }}</p>
+                                <p class="text-sm font-semibold text-gray-800">{{ Auth::user()->username ?? 'User' }}
+                                </p>
                             </div>
-                            <a href=""
+                            <a href="{{ route('profile.index') }}"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i
                                     class="fas fa-user mr-2 text-gray-400"></i> Profil Saya</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i
-                                    class="fas fa-cog mr-2 text-gray-400"></i> Pengaturan</a>
+
                             <div class="border-t border-gray-100 my-1"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

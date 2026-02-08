@@ -12,6 +12,7 @@ use App\Http\Controllers\ImportExcelController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RekapController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -43,6 +44,10 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     // Whatsapp retry & flush
     Route::post('/wa-retry', [DashboardController::class, 'retryAllWA'])->name('wa.retry');
     Route::post('/wa-flush', [DashboardController::class, 'flushFailedWA'])->name('wa.flush');
