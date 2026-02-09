@@ -98,8 +98,7 @@ class RekapController extends Controller
     public function exportBulananExcel(Request $request)
     {
         $profil = ProfilSekolah::first();
-        
-        $data = $this->getDataBulanan($request);
+        $data = $this->getDataBulanan($request); // Pastikan ini me-return data yang valid
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -108,99 +107,146 @@ class RekapController extends Controller
         $bulanStr = Carbon::createFromDate(null, $data['bulan'])->translatedFormat('F');
         $sheet->setCellValue('A1', 'REKAP ABSENSI ' . strtoupper($data['kategori']));
         $sheet->setCellValue('A2', "Bulan: $bulanStr {$data['tahun']}");
-        $sheet->mergeCells('A1:AI1'); // Asumsi lebar sampai kolom rekap
-        $sheet->mergeCells('A2:AI2');
+
+        // Styling Judul
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1:A2')->getAlignment()->setHorizontal('center');
 
-        // Header Table Row 4 & 5
+        // Header Table (NO & NAMA) - Merge ke bawah sampai baris 6
         $sheet->setCellValue('A4', 'NO');
-        $sheet->mergeCells('A4:A5');
+        $sheet->mergeCells('A4:A6');
         $sheet->setCellValue('B4', 'NAMA');
-        $sheet->mergeCells('B4:B5');
+        $sheet->mergeCells('B4:B6');
 
-        // Loop Tanggal 1 - 31
+        // --- LOOP HEADER TANGGAL (1 - 31) ---
         $colIndex = 3; // Mulai dari Kolom C
+
         for ($d = 1; $d <= $data['jumlahHari']; $d++) {
             $date = Carbon::createFromDate($data['tahun'], $data['bulan'], $d);
-            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
 
-            $sheet->setCellValue($colLetter . '4', $d);
-            $sheet->setCellValue($colLetter . '5', substr($date->translatedFormat('D'), 0, 1)); // S, M, R, K...
+            // Kita butuh 2 kolom per tanggal (Masuk & Pulang)
+            // Kolom Pertama (Start)
+            $colStart = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+            // Kolom Kedua (End)
+            $colEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
 
-            // Warnai Merah jika Minggu
-            if ($date->dayOfWeek == $profil->hari_libur_mingguan || in_array($date->format('Y-m-d'), $data['libur'])) {
-                $sheet->getStyle($colLetter . '4:' . $colLetter . '100')
+            // 1. Baris 4: Tanggal (Merged 2 Kolom)
+            $sheet->setCellValue($colStart . '4', $d);
+            $sheet->mergeCells($colStart . '4:' . $colEnd . '4');
+
+            // 2. Baris 5: Hari (Merged 2 Kolom)
+            $sheet->setCellValue($colStart . '5', substr($date->translatedFormat('D'), 0, 1)); // S, M, R...
+            $sheet->mergeCells($colStart . '5:' . $colEnd . '5');
+
+            // 3. Baris 6: Keterangan (M & P)
+            $sheet->setCellValue($colStart . '6', 'Masuk'); // Masuk
+            $sheet->setCellValue($colEnd . '6', 'Pulang');  // Pulang
+
+            // Styling Header Hari Libur / Minggu
+            $isLibur = $date->dayOfWeek == $profil->hari_libur_mingguan || in_array($date->format('Y-m-d'), $data['libur']);
+
+            if ($isLibur) {
+                // Warnai header dan nanti kolom ke bawah merah muda/kuning
+                $sheet->getStyle($colStart . '4:' . $colEnd . '100')
                     ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('YYFFCCCC');
-                $sheet->getStyle($colLetter . '4')->getFont()->getColor()->setARGB('FFFF0000');
+                // Font Tanggal Merah
+                $sheet->getStyle($colStart . '4')->getFont()->getColor()->setARGB('FFFF0000');
             }
-            $colIndex++;
+
+            // Geser index 2 langkah (karena pakai 2 kolom)
+            $colIndex += 2;
         }
 
-        // Header Rekap (H, S, I, A)
+        // Header Rekap (H, S, I, A) - Ditaruh setelah semua tanggal
         $rekapHeaders = ['H', 'S', 'I', 'A'];
         foreach ($rekapHeaders as $rh) {
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
             $sheet->setCellValue($colLetter . '4', $rh);
-            $sheet->mergeCells($colLetter . '4:' . $colLetter . '5');
+            $sheet->mergeCells($colLetter . '4:' . $colLetter . '6'); // Merge sampai baris 6
             $colIndex++;
         }
 
+        // Merge Judul Utama agar rata tengah sepanjang tabel
+        $lastColStr = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex - 1);
+        $sheet->mergeCells('A1:' . $lastColStr . '1');
+        $sheet->mergeCells('A2:' . $lastColStr . '2');
+
         // --- B. ISI DATA ---
-        $row = 6;
+        $row = 7; // Data mulai baris ke-7
+
         foreach ($data['users'] as $index => $user) {
             $sheet->setCellValue('A' . $row, $index + 1);
             $sheet->setCellValue('B' . $row, $user->nama);
 
-            // Statistik Per User
+            // Reset Counter Statistik
             $h = 0;
             $s = 0;
             $i = 0;
             $a = 0;
 
-            // Loop Tanggal
+            // Loop Tanggal untuk Data
             $colIndex = 3;
             for ($d = 1; $d <= $data['jumlahHari']; $d++) {
                 $tglStr = sprintf('%s-%02d-%02d', $data['tahun'], $data['bulan'], $d);
-                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
 
-                // Cek Absen via Helper Array (Biar gak query ulang)
+                // Kolom Masuk & Pulang
+                $colMasuk = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                $colPulang = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+
                 $absen = $user->absensi_mapped[$d] ?? null;
                 $isLibur = (Carbon::createFromDate($data['tahun'], $data['bulan'], $d)->dayOfWeek == $profil->hari_libur_mingguan) || in_array($tglStr, $data['libur']);
 
+                // LOGIKA PENGISIAN CELL
                 if ($isLibur) {
-                    $sheet->setCellValue($colLetter . $row, 'L');
+                    $sheet->setCellValue($colMasuk . $row, 'L');
+                    $sheet->setCellValue($colPulang . $row, 'L');
                 } elseif ($absen) {
                     $status = $absen->status;
-                    $sheet->setCellValue($colLetter . $row, $status);
 
-                    // Warna Cell Berdasarkan Status
+                    if ($status == 'H') {
+                        // Jika Hadir, Tampilkan Jam
+                        // Asumsi di database ada field jam_masuk & jam_pulang. Sesuaikan formatnya.
+                        $jamMasuk = $absen->jam_masuk ? Carbon::parse($absen->jam_masuk)->format('H:i') : '-';
+                        $jamPulang = $absen->jam_pulang ? Carbon::parse($absen->jam_pulang)->format('H:i') : '-';
+
+                        $sheet->setCellValue($colMasuk . $row, $jamMasuk);
+                        $sheet->setCellValue($colPulang . $row, $jamPulang);
+                        $h++;
+                    } else {
+                        // Jika S, I, A -> Tampilkan Kode Status di kedua kolom
+                        $sheet->setCellValue($colMasuk . $row, $status);
+                        $sheet->setCellValue($colPulang . $row, $status);
+
+                        if ($status == 'S') $s++;
+                        if ($status == 'I') $i++;
+                        if ($status == 'A') $a++;
+                    }
+
+                    // Warna Cell Berdasarkan Status (Opsional, biar cantik)
                     $color = match ($status) {
-                        'H' => 'FFCCFFCC', // Hijau Muda
-                        'S' => 'FFFFFFCC', // Kuning Muda
-                        'I' => 'FFCCCCFF', // Biru/Ungu Muda
-                        'A' => 'FFFFCCCC', // Merah Muda
+                        'H' => 'FFCCFFCC', // Hijau
+                        'S' => 'FFFFFFCC', // Kuning
+                        'I' => 'FFCCCCFF', // Ungu
+                        'A' => 'FFFFCCCC', // Merah
                         default => 'FFFFFFFF'
                     };
-                    $sheet->getStyle($colLetter . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
-
-                    if ($status == 'H') $h++;
-                    if ($status == 'S') $s++;
-                    if ($status == 'I') $i++;
-                    if ($status == 'A') $a++;
+                    $sheet->getStyle($colMasuk . $row . ':' . $colPulang . $row)
+                        ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
                 } else {
-                    // Jika Kosong & Bukan Libur = Alpha
+                    // Tidak ada data & Bukan Libur = Alpha
                     if ($tglStr <= date('Y-m-d')) {
-                        $sheet->setCellValue($colLetter . $row, 'A');
-                        $sheet->getStyle($colLetter . $row)->getFont()->getColor()->setARGB('FFFF0000');
+                        $sheet->setCellValue($colMasuk . $row, 'A');
+                        $sheet->setCellValue($colPulang . $row, 'A');
+                        $sheet->getStyle($colMasuk . $row . ':' . $colPulang . $row)
+                            ->getFont()->getColor()->setARGB('FFFF0000'); // Text Merah
                         $a++;
                     }
                 }
-                $colIndex++;
+
+                $colIndex += 2; // Geser 2 kolom
             }
 
-            // Isi Kolom Rekap
-            $startRekap = $colIndex;
+            // Isi Kolom Rekap (H, S, I, A)
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $h);
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $s);
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $i);
@@ -210,7 +256,6 @@ class RekapController extends Controller
         }
 
         // --- C. STYLING FINAL ---
-        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex - 1);
         $styleArray = [
             'borders' => [
                 'allBorders' => [
@@ -219,22 +264,27 @@ class RekapController extends Controller
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
-        // Terapkan border ke seluruh tabel
-        $sheet->getStyle('A4:' . $lastCol . ($row - 1))->applyFromArray($styleArray);
+
+        // Terapkan border & align center ke seluruh tabel
+        $sheet->getStyle('A4:' . $lastColStr . ($row - 1))->applyFromArray($styleArray);
+
         // Nama Rata Kiri
-        $sheet->getStyle('B6:B' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle('B7:B' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
         // Auto Size Kolom
         $sheet->getColumnDimension('B')->setAutoSize(true);
-        for ($c = 3; $c <= $colIndex; $c++) {
-            $sheet->getColumnDimension(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c))->setWidth(4);
+
+        // Atur Lebar Kolom Tanggal (Kecil saja)
+        for ($c = 3; $c < $colIndex; $c++) {
+            $sheet->getColumnDimension(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c))->setWidth(6);
         }
 
         // --- D. OUTPUT FILE ---
         $writer = new Xlsx($spreadsheet);
-        $filename = 'Rekap_Absensi_' . $data['kategori'] . '_' . $bulanStr . '_' . $data['tahun'] . '.xlsx';
+        $filename = 'Rekap_Absensi_Detail_' . $data['kategori'] . '_' . $bulanStr . '_' . $data['tahun'] . '.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . urlencode($filename) . '"');

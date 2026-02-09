@@ -152,26 +152,78 @@ class PengaturanController extends Controller
         }
     }
 
+    // public function databaseBackup()
+    // {
+    //     set_time_limit(0); // Unlimited time execution
+
+    //     try {
+    //         // 1. Jalankan Backup (Hanya Database)
+    //         // Hasil backup disimpan di: storage/app/absen-rfid-v2/
+    //         Artisan::call('backup:run --only-db --disable-notifications');
+
+    //         // 2. Tentukan Folder
+    //         $appName = config('app.name');
+    //         $directory = Str::slug($appName);
+
+    //         // 3. Cari File Terbaru
+    //         if (!Storage::disk('local')->exists($directory)) {
+    //             return redirect()->back()->with('warning', "Backup berhasil dibuat, tapi folder '$directory' belum terbaca. Coba refresh.");
+    //         }
+
+    //         $files = Storage::disk('local')->files($directory);
+
+    //         if (count($files) > 0) {
+    //             // Filter cari file .zip saja dan ambil yang terakhir dimodifikasi
+    //             $latestFile = collect($files)->filter(function ($file) {
+    //                 return str_ends_with($file, '.zip');
+    //             })->sortBy(function ($file) {
+    //                 return Storage::disk('local')->lastModified($file);
+    //             })->last();
+
+    //             if ($latestFile) {
+    //                 // 4. Download file TANPA menghapusnya
+    //                 return Storage::download($latestFile);
+    //             }
+    //         }
+
+    //         return redirect()->back()->with('warning', 'Backup berhasil diproses di server, tapi file zip tidak ditemukan untuk didownload otomatis.');
+    //     } catch (\Exception $e) {
+    //         Log::error('Backup Error: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Backup Gagal: ' . $e->getMessage());
+    //     }
+    // }
+
     public function databaseBackup()
     {
-        set_time_limit(0); // Unlimited time execution
+        set_time_limit(0);
 
         try {
-            // 1. Jalankan Backup (Hanya Database)
-            // Hasil backup disimpan di: storage/app/absen-rfid-v2/
-            Artisan::call('backup:run --only-db --disable-notifications');
+            // 1. Pastikan config dump path sudah benar (lihat poin 1)
 
-            // 2. Tentukan Folder
-            $appName = env('APP_NAME');
-            $directory = Str::slug($appName);
+            // 2. Jalankan Backup
+            // Output dari artisan call ini sebenarnya bisa dicek
+            $exitCode = Artisan::call('backup:run --only-db --disable-notifications');
 
-            // 3. Cari File Terbaru
-            if (!Storage::disk('local')->exists($directory)) {
-                return redirect()->back()->with('warning', "Backup berhasil dibuat, tapi folder '$directory' belum terbaca. Coba refresh.");
+            if ($exitCode !== 0) {
+                throw new \Exception("Perintah backup gagal dijalankan. Cek Log.");
             }
 
-            $files = Storage::disk('local')->files($directory);
+            // 3. Ambil Nama Aplikasi dari Config (Bukan Env)
+            $appName = config('backup.backup.name'); // Ambil langsung dari config package
+            $directory = Str::slug($appName);
 
+            $disk = Storage::disk('local'); // Sesuaikan jika config backup.php pakai disk lain
+
+            // 4. Cari File Zip
+            if (!$disk->exists($directory)) {
+                // Debugging: Cek isi root storage biar tau folder apa yang terbentuk
+                Log::info('Folder di storage: ' . json_encode($disk->directories()));
+                return redirect()->back()->with('error', "Folder backup '$directory' tidak ditemukan.");
+            }
+
+            $files = $disk->files($directory);
+
+            // ... (kode sorting Anda sudah benar) ...
             if (count($files) > 0) {
                 // Filter cari file .zip saja dan ambil yang terakhir dimodifikasi
                 $latestFile = collect($files)->filter(function ($file) {
@@ -179,17 +231,19 @@ class PengaturanController extends Controller
                 })->sortBy(function ($file) {
                     return Storage::disk('local')->lastModified($file);
                 })->last();
-
+                // Tips: Gunakan full path untuk download response yang lebih aman
                 if ($latestFile) {
-                    // 4. Download file TANPA menghapusnya
-                    return Storage::download($latestFile);
+                    return $disk->download($latestFile);
                 }
             }
-
-            return redirect()->back()->with('warning', 'Backup berhasil diproses di server, tapi file zip tidak ditemukan untuk didownload otomatis.');
+            
+            return redirect()->back()->with('warning', 'File backup tidak ditemukan.');
         } catch (\Exception $e) {
+            // Log error lengkap untuk debugging
             Log::error('Backup Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Backup Gagal: ' . $e->getMessage());
+            Log::error('Backup Trace: ' . $e->getTraceAsString());
+
+            return redirect()->back()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 

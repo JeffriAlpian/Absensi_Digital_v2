@@ -11,11 +11,11 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
-        host: '0.0.0.0', // Mengizinkan akses dari luar localhost
-        https: false,
-        hmr: {
-            host: '192.168.1.6' // GANTI dengan IP Laptop/PC Anda yang Anda pakai tadi
-        },
+        // host: '0.0.0.0', // Mengizinkan akses dari luar localhost
+        // https: false,
+        // hmr: {
+        //     host: '192.168.1.6' // GANTI dengan IP Laptop/PC Anda yang Anda pakai tadi
+        // },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

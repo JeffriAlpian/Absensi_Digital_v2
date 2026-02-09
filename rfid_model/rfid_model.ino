@@ -1,11 +1,10 @@
 // ===============================================
 // PROGRAM ABSENSI RFID ONLINE & OFFLINE (WEMOS D1 MINI)
-// Revisi 2: Perbaikan HTTPS, Cloudflare, dan Captive Portal
+// Revisi 7: Perbaikan Logika Mode AP & WiFi
 // ===============================================
 
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-// #include <WiFiClientSecure.h>  // Diperlukan untuk HTTPS
 #include <SPI.h>
 #include <MFRC522.h>
 #include <SD.h>
@@ -15,7 +14,10 @@
 #include <ESP8266WebServer.h>
 #include <EEPROM.h>
 #include <DNSServer.h>
-#include <RTClib.h>  // Tambahkan library untuk RTC
+#include <RTClib.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
+#include <WiFiClientSecure.h>
 
 // =============================
 // 🔹 PIN KONFIGURASI
@@ -26,7 +28,12 @@
 #define SDA_PIN D2
 #define SCL_PIN D1
 #define BUZZER_PIN D0
-// SPI: MOSI:D7, MISO:D6, SCK:D5
+
+// =============================
+// 🔹 KONFIGURASI ACCESS POINT
+// =============================
+const char *apSSID = "Konfigurasi_Absen_003";
+const char *apPASS = NULL;
 
 // =============================
 // 🔹 OBJEK
@@ -35,34 +42,41 @@ MFRC522 rfid(SS_RFID, RST_RFID);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 ESP8266WebServer server(80);
 DNSServer dnsServer;
-RTC_DS3231 rtc;  // Tambahkan objek RTC
-// BearSSL::WiFiClientSecure client;  // Gunakan WiFiClientSecure untuk inisialisasi client
+RTC_DS3231 rtc;
 WiFiClient client;
 
+// =============================
+// 🔹 NTP CLIENT
+// =============================
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "id.pool.ntp.org", 25200, 60000);
+unsigned long lastSyncTime = 0;
+const unsigned long SYNC_INTERVAL = 3600000;
+bool ntpSynced = false;
+
+// =============================
+// 🔹 STATUS VARIABEL
+// =============================
 bool apModeActive = false;
-bool rtcAvailable = false;  // Flag untuk menandai RTC tersedia
+bool rtcAvailable = false;
+bool wifiConnected = false;
+bool internetAvailable = false;
+String lastError = "";
+String lastStatus = "System Ready";
+bool returningToReady = false;
+unsigned long readyReturnTime = 0;
 
 // =============================
 // 🔹 WIFI & SERVER
 // =============================
 String ssid = "";
 String password = "";
-String serverUrl_DomainOnly = "";  // [DIUBAH] Hanya simpan domain, cth: absensi.sekolah.id
-String serverUrl_Full = "";        // URL lengkap, cth: https://.../rekam_rfid.php
+String serverUrl_DomainOnly = "";
+String serverUrl_Full = "";
 String apiKey = "";
-String lastDate = "";
+String deviceName = "";
 String uid = "";
-const String UID_RESET = "33BB4B6";
-
-void updateServerDate(String date) {
-  lastDate = date;
-}
-
-const char *apSSID = "Konfigurasi_Absen_003";
-const char *apPASS = NULL;  // Password AP terbuka
-
-unsigned long lastCheck = 0;
-bool wifiConnected = false;
+const String UID_RESET = "4A6DC6";
 
 // =========================
 // 📦 EEPROM Layout
@@ -70,8 +84,145 @@ bool wifiConnected = false;
 #define EEPROM_SIZE 512
 #define ADDR_SSID 0
 #define ADDR_PASS 100
-#define ADDR_URL 200  // Alamat untuk menyimpan domain
+#define ADDR_URL 200
 #define ADDR_API 400
+#define ADDR_DEVICE 300
+
+// =============================
+// 🔹 KONFIGURASI TELEGRAM BOT
+// =============================
+const String TELEGRAM_BOT_TOKEN = "8462176461:AAH8yC5qTlJ9DeX0lHe88OFUEEBXx1C6mm4";
+const String TELEGRAM_CHAT_ID = "7631557592";
+WiFiClientSecure clientSecure;
+
+// =============================
+// 🔹 FUNGSI DISPLAY YANG DIPERBAIKI
+// =============================
+void displayReady() {
+  if (apModeActive) return;
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Ready to Scan   ");
+  updateStatusDisplay();
+  returningToReady = false;
+  Serial.println("[DISPLAY] Ready to Scan");
+}
+
+void displayDebug(String line1, String line2 = "", int displayTime = 3000, bool autoReturn = true) {
+  lcd.clear();
+  if (line1.length() > 16) line1 = line1.substring(0, 16);
+  lcd.setCursor(0, 0);
+  lcd.print(line1);
+
+  if (line2 != "") {
+    if (line2.length() > 16) line2 = line2.substring(0, 16);
+    lcd.setCursor(0, 1);
+    lcd.print(line2);
+  }
+
+  Serial.println("[DEBUG] " + line1 + " | " + line2);
+
+  // Set timer untuk kembali ke Ready to Scan
+  if (!apModeActive && autoReturn && displayTime > 0) {
+    returningToReady = true;
+    readyReturnTime = millis() + displayTime;
+  }
+}
+
+void displayError(String errorMsg) {
+  lastError = errorMsg;
+  displayDebug("ERROR:", errorMsg, 3000);
+  Serial.println("[ERROR] " + errorMsg);
+}
+
+// =============================
+// 🔹 FUNGSI DETEKSI INTERNET - PERBAIKAN
+// =============================
+bool checkInternetConnection() {
+  if (WiFi.status() != WL_CONNECTED) {
+    internetAvailable = false;
+    Serial.println("❌ WiFi tidak terhubung");
+    return false;
+  }
+
+  Serial.println("🔍 Mengecek koneksi internet...");
+  displayDebug("Checking", "Internet...");
+
+  // Coba 1: Ping ke Google DNS (8.8.8.8)
+  bool pingSuccess = false;
+  unsigned long pingStart = millis();
+
+  // Simulasi ping sederhana dengan koneksi TCP ke port 80
+  WiFiClient pingClient;
+  pingClient.setTimeout(3000);  // Timeout 3 detik
+
+  if (pingClient.connect("8.8.8.8", 80)) {
+    pingClient.stop();
+    pingSuccess = true;
+    Serial.println("✅ Ping ke 8.8.8.8 berhasil");
+  } else {
+    Serial.println("❌ Ping ke 8.8.8.8 gagal");
+  }
+
+  // Coba 2: Akses ke server NTP
+  bool ntpSuccess = false;
+  WiFiUDP udp;
+
+  if (udp.begin(123)) {  // Port NTP
+    unsigned long ntpStart = millis();
+    while (millis() - ntpStart < 2000) {
+      if (udp.parsePacket()) {
+        ntpSuccess = true;
+        break;
+      }
+      delay(10);
+    }
+    udp.stop();
+
+    if (ntpSuccess) {
+      Serial.println("✅ Koneksi NTP berhasil");
+    } else {
+      Serial.println("❌ Koneksi NTP gagal");
+    }
+  }
+
+  // Coba 3: Akses ke server absensi (jika ada konfigurasi)
+  bool serverSuccess = false;
+  if (serverUrl_DomainOnly != "") {
+    HTTPClient http;
+    http.setTimeout(3000);
+
+    String testUrl = "http://" + serverUrl_DomainOnly + "/ping";  // Endpoint ping sederhana
+
+    if (http.begin(client, testUrl)) {
+      int httpCode = http.GET();
+      http.end();
+
+      if (httpCode == 200 || httpCode == 404 || httpCode == 403) {
+        // Status code apapun kecuali timeout menunjukkan server merespons
+        serverSuccess = true;
+        Serial.println("✅ Server absensi merespons");
+      } else {
+        Serial.println("❌ Server absensi tidak merespons");
+      }
+    }
+  } else {
+    // Jika tidak ada server, anggap server test success
+    serverSuccess = true;
+  }
+
+  // Internet dianggap tersedia jika minimal 1 dari 3 test berhasil
+  internetAvailable = (pingSuccess || ntpSuccess || serverSuccess);
+
+  if (internetAvailable) {
+    Serial.println("✅ Internet tersedia");
+  } else {
+    Serial.println("❌ Internet tidak tersedia");
+  }
+
+  return internetAvailable;
+}
 
 // =========================
 // ⚙️ FUNGSI SIMPAN/BACA EEPROM
@@ -89,8 +240,7 @@ String readFromEEPROM(int addr) {
   char ch;
   for (int i = addr; i < addr + 100; i++) {
     ch = EEPROM.read(i);
-    if (ch == '\0')
-      break;
+    if (ch == '\0') break;
     data += ch;
   }
   return data;
@@ -105,27 +255,145 @@ String getCurrentDate() {
     char dateStr[11];
     sprintf(dateStr, "%04d-%02d-%02d", now.year(), now.month(), now.day());
     return String(dateStr);
-  } else {
-    return "1970-01-01";
   }
+  return "1970-01-01";
 }
 
 String getCurrentTime() {
   if (rtcAvailable) {
     DateTime now = rtc.now();
+    uint8_t hour = now.hour();
+    if (hour >= 24) hour -= 24;
     char timeStr[9];
-    sprintf(timeStr, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
+    sprintf(timeStr, "%02d:%02d:%02d", hour, now.minute(), now.second());
     return String(timeStr);
-  } else {
-    return "00:00:00";
   }
+  return "00:00:00";
+}
+
+// =========================
+// 🔄 FUNGSI SINKRONISASI NTP
+// =========================
+void syncRTCwithNTP() {
+  if (!internetAvailable) {
+    Serial.println("Internet tidak tersedia, skip NTP sync");
+    return;
+  }
+
+  displayDebug("Sync NTP...", "Tunggu", 2000);
+  Serial.println("🔄 Starting NTP sync...");
+
+  timeClient.begin();
+  unsigned long startTime = millis();
+  bool updated = false;
+
+  while (millis() - startTime < 3000) {
+    if (timeClient.update()) {
+      updated = true;
+      break;
+    }
+    delay(100);
+  }
+
+  if (updated) {
+    unsigned long epochTime = timeClient.getEpochTime();
+    DateTime ntpTime(epochTime);
+
+    if (rtcAvailable) {
+      rtc.adjust(ntpTime);
+      ntpSynced = true;
+      lastSyncTime = millis();
+      Serial.println("✅ RTC synchronized with NTP");
+    }
+  } else {
+    Serial.println("❌ NTP sync failed");
+  }
+
+  timeClient.end();
+}
+
+// =========================
+// 📱 FUNGSI TELEGRAM
+// =========================
+void sendTelegramMessage(String message) {
+  if (!internetAvailable) {
+    Serial.println("Internet tidak tersedia, tidak bisa kirim Telegram");
+    return;
+  }
+
+  HTTPClient https;
+  String url = "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage";
+
+  clientSecure.setInsecure();
+  clientSecure.setTimeout(5000);
+
+  if (!https.begin(clientSecure, url)) {
+    Serial.println("Gagal konek ke Telegram");
+    return;
+  }
+
+  https.addHeader("Content-Type", "application/json");
+
+  String jsonPayload = "{";
+  jsonPayload += "\"chat_id\":\"" + TELEGRAM_CHAT_ID + "\",";
+  jsonPayload += "\"text\":\"" + message + "\",";
+  jsonPayload += "\"parse_mode\":\"HTML\",";
+  jsonPayload += "\"disable_notification\":false";
+  jsonPayload += "}";
+
+  int httpCode = https.POST(jsonPayload);
+  if (httpCode > 0) {
+    if (httpCode == 200) {
+      Serial.println("✅ Telegram terkirim");
+    } else {
+      Serial.println("Telegram error: " + String(httpCode));
+    }
+  }
+  https.end();
+}
+
+void sendAttendanceNotification(String nama, String status, String uid) {
+  if (!internetAvailable) return;
+
+  String message = "✅ <b>ABSENSI BERHASIL</b>\n\n";
+  message += "👤 <b>Nama:</b> " + nama + "\n";
+  message += "📋 <b>Status:</b> " + status + "\n";
+  message += "🆔 <b>UID:</b> " + uid + "\n";
+  message += "📅 <b>Tanggal:</b> " + getCurrentDate() + "\n";
+  message += "⏰ <b>Waktu:</b> " + getCurrentTime() + "\n";
+  message += "🔧 <b>Device:</b> " + deviceName;
+  sendTelegramMessage(message);
+}
+
+void sendOfflineSyncNotification(int count) {
+  if (!internetAvailable) return;
+
+  String message = "💾 <b>DATA OFFLINE DISINKRONKASIKAN</b> 💾\n\n";
+  message += "📦 <b>Jumlah Data:</b> " + String(count) + " record\n";
+  message += "📅 <b>Tanggal:</b> " + getCurrentDate() + "\n";
+  message += "⏰ <b>Waktu:</b> " + getCurrentTime() + "\n";
+  message += "🔧 <b>Device:</b> " + deviceName + "\n\n";
+  message += "✅ <i>Data offline berhasil dikirim ke server</i>";
+  sendTelegramMessage(message);
+}
+
+void sendErrorLog(String errorMsg, String uid) {
+  if (!internetAvailable) return;
+
+  String telegramMessage = "🚨 <b>ERROR REPORT</b>\n\n";
+  telegramMessage += "📅 <b>Tanggal:</b> " + getCurrentDate() + "\n";
+  telegramMessage += "⏰ <b>Waktu:</b> " + getCurrentTime() + "\n";
+  telegramMessage += "🆔 <b>UID:</b> " + uid + "\n";
+  telegramMessage += "🔧 <b>Device:</b> " + deviceName + "\n";
+  telegramMessage += "📶 <b>Internet:</b> " + String(internetAvailable ? "Online" : "Offline") + "\n\n";
+  telegramMessage += "❌ <b>ERROR:</b>\n<code>" + errorMsg + "</code>";
+  sendTelegramMessage(telegramMessage);
 }
 
 // =========================
 // 🌐 HALAMAN WEB KONFIGURASI
 // =========================
 void handleRoot() {
-  // [PERBAIKAN] String HTML dibangun dengan benar
   String html = F(R"(
 <!DOCTYPE html>
 <html>
@@ -133,75 +401,64 @@ void handleRoot() {
  <title>Konfigurasi Absensi</title>
  <meta name='viewport' content='width=device-width, initial-scale=1'>
  <style>
-  body { 
-   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-   background-color: #f0f2f5; margin: 0; padding: 20px; 
-   display: flex; justify-content: center; align-items: center; min-height: 90vh; 
-  }
-  .container { 
-   background-color: #ffffff; padding: 25px 30px; border-radius: 10px; 
-   box-shadow: 0 6px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; box-sizing: border-box; 
-  }
-  h2 { text-align: center; color: #333; margin-top: 0; margin-bottom: 25px; font-size: 24px; }
+  body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+  .container { background-color: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+  h2 { text-align: center; color: #333; margin-bottom: 25px; }
   label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; }
-  input[type='text'], input[type='password'] { 
-   width: 100%; padding: 12px; margin-bottom: 18px; border: 1px solid #ddd; 
-   border-radius: 6px; box-sizing: border-box; font-size: 16px; 
-  }
-  input[type='submit'] { 
-   width: 100%; background-color: #007bff; color: white; padding: 14px; 
-   border: none; border-radius: 6px; cursor: pointer; font-size: 18px; 
-   font-weight: 600; transition: background-color 0.2s;
-  }
-
+  input[type='text'], input[type='password'] { width: 100%; padding: 12px; margin-bottom: 18px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+  input[type='submit'] { width: 100%; background-color: #007bff; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 18px; }
   input[type='submit']:hover { background-color: #0056b3; }
+  .status { padding: 10px; margin-bottom: 20px; border-radius: 6px; background-color: #e7f3ff; border-left: 4px solid #007bff; }
  </style>
 </head>
 <body>
  <div class='container'>
-  <h2>Konfigurasi Alat Absensi</h2>
+  <h2>Konfigurasi Absensi RFID</h2>
+  
+  <div class='status'>
+    <strong>Status Perangkat:</strong><br>
+    WiFi: )");
+
+  html += (WiFi.status() == WL_CONNECTED) ? "Terhubung" : "Tidak Terhubung";
+  html += F(R"(<br>RTC: )");
+  html += rtcAvailable ? "OK" : "Tidak Ditemukan";
+  html += F(R"(<br>Internet: )");
+  html += internetAvailable ? "Tersedia" : "Tidak Tersedia";
+  html += F(R"(<br>Waktu: )");
+  html += getCurrentDate() + " " + getCurrentTime();
+
+  html += F(R"(
+  </div>
+  
   <form action='/save' method='POST'>
    <label for='ssid'>SSID WiFi:</label>
    <input type='text' id='ssid' name='ssid' value=')");
-
-  html += ssid;  // Tambahkan nilai SSID
+  html += ssid;
 
   html += F(R"('>
-    <div style='width:100%; font-weight:600; position:relative; display:flex; justify-content:space-between;'>
    <label for='password'>Password WiFi:</label>
-   <button type='button' onclick='togglePassword()' style='background:none; border:none; cursor:pointer; font-size:14px; color:#007bff;'>Lihat</button>
-    </div>
-    
-   <input class='password' type='password' id='password' name='password' value=')");
-
-  html += password;  // Tambahkan nilai Password
+   <input type='password' id='password' name='password' value=')");
+  html += password;
 
   html += F(R"('>
-   <label for='url'>Server URL: (cth: absensi.sekolah.id)</label>
+   <label for='url'>Server Domain:</label>
    <input type='text' id='url' name='url' value=')");
-
-  html += serverUrl_DomainOnly;  // [DIUBAH] Tampilkan HANYA domain
+  html += serverUrl_DomainOnly;
 
   html += F(R"('>
    <label for='api'>API Key:</label>
    <input type='text' id='api' name='api' value=')");
+  html += apiKey;
 
-  html += apiKey;  // Tambahkan nilai API Key
+  html += F(R"('>
+   <label for='device'>Nama Device:</label>
+   <input type='text' id='device' name='device' value=')");
+  html += deviceName;
 
   html += F(R"('>
    <input type='submit' value='Simpan & Restart'>
   </form>
  </div>
-  <script>
-    function togglePassword() {
-      var pwdField = document.getElementById('password');
-      if (pwdField.type === 'password') {
-        pwdField.type = 'text';
-      } else {
-        pwdField.type = 'password';
-      }
-    }
-  </script>
 </body>
 </html>)");
 
@@ -209,13 +466,12 @@ void handleRoot() {
 }
 
 void handleSave() {
-  // Ambil nilai dari form
   ssid = server.arg("ssid");
   password = server.arg("password");
-  String domainInput = server.arg("url");  // Ambil domain dari input 'url'
+  String domainInput = server.arg("url");
   apiKey = server.arg("api");
+  deviceName = server.arg("device");
 
-  // [PERBAIKAN] Bersihkan input domain
   domainInput.replace("https://", "");
   domainInput.replace("http://", "");
   domainInput.trim();
@@ -223,22 +479,15 @@ void handleSave() {
     domainInput = domainInput.substring(0, domainInput.length() - 1);
   }
 
-  // Simpan ke EEPROM
   saveToEEPROM(ADDR_SSID, ssid);
   saveToEEPROM(ADDR_PASS, password);
-  saveToEEPROM(ADDR_URL, domainInput);  // Simpan HANYA domain
+  saveToEEPROM(ADDR_URL, domainInput);
   saveToEEPROM(ADDR_API, apiKey);
+  saveToEEPROM(ADDR_DEVICE, deviceName);
 
-  // [PERBAIKAN] Bangun URL lengkap untuk sesi ini
-  if (domainInput != "") {
-    // [PERBAIKAN] Pastikan path ini SAMA dengan path API Anda di server
-    serverUrl_Full = "http://" + domainInput + "/app/rekam_absen_rfid.php";
-  } else {
-    serverUrl_Full = "";
-  }
-  serverUrl_DomainOnly = domainInput;  // Update variabel global domain
+  serverUrl_DomainOnly = domainInput;
+  serverUrl_Full = "http://" + domainInput + "/api/rfid/catat";
 
-  // Kirim halaman balasan (HTML Anda sudah benar)
   String html = R"(
 <!DOCTYPE html>
 <html>
@@ -247,24 +496,23 @@ void handleSave() {
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <meta http-equiv='refresh' content='3;url=http://192.168.4.1'>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f0f2f5; }
-    .message { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
-    h3 { color: #28a745; }
-    p { font-size: 18px; }
+    body { font-family: Arial, sans-serif; background-color: #f0f2f5; }
+    .message { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); max-width: 450px; margin: 50px auto; }
+    h3 { color: #28a745; text-align: center; }
+    p { text-align: center; }
   </style>
 </head>
 <body>
   <div class='message'>
-    <h3>Data Tersimpan!</h3>
-    <p>Perangkat akan segera restart...</p>
-    <p style='font-size:14px; color:#888;'>Halaman akan kembali jika masih terhubung ke AP.</p>
+    <h3>✅ Data Tersimpan!</h3>
+    <p>Perangkat akan restart dalam 3 detik...</p>
   </div>
 </body>
 </html>)";
 
   server.send(200, "text/html", html);
   delay(2000);
-  ESP.restart();  // Restart untuk menerapkan konfigurasi baru
+  ESP.restart();
 }
 
 // =======================
@@ -272,37 +520,29 @@ void handleSave() {
 // =======================
 void startAPConfig() {
   Serial.println("🔧 Mode konfigurasi aktif!");
-  apModeActive = true;  // Tandai bahwa kita masuk mode AP
+  displayDebug("AP Mode Active", "Config via WiFi", 0, false);
+  apModeActive = true;
+  wifiConnected = false;
+  internetAvailable = false;
+
   WiFi.mode(WIFI_AP);
-  delay(100);
+  delay(1000);
 
-  bool result = WiFi.softAP(apSSID, apPASS);
-  if (!result) { /* ... (Handle AP Gagal) ... */
-    Serial.println("❌ Gagal memulai AP!");
-    lcd.clear();
-    lcd.print("AP Gagal!");
-    return;
-  }
-
+  WiFi.softAP(apSSID, apPASS);
   IPAddress IP = WiFi.softAPIP();
   Serial.print("Akses: http://");
   Serial.println(IP);
-  lcd.clear();
-  lcd.print("AP Mode Aktif");
-  lcd.setCursor(0, 1);
-  lcd.print(IP.toString());
+  displayDebug("AP Mode", IP.toString(), 0, false);
 
-  dnsServer.start(53, "*", IP);  // Mulai DNS Server
-
+  dnsServer.start(53, "*", IP);
   server.on("/", handleRoot);
   server.on("/save", HTTP_POST, handleSave);
-  server.onNotFound(handleRoot);  // Redirect semua ke halaman utama
+  server.onNotFound(handleRoot);
   server.begin();
-  Serial.println("🌐 Web konfigurasi siap!");
 }
 
 // =============================
-// ⚙️ SETUP
+// ⚙️ SETUP - LOGIKA DIPERBAIKI
 // =============================
 void setup() {
   Serial.begin(115200);
@@ -315,59 +555,50 @@ void setup() {
   // Inisialisasi LCD
   lcd.init();
   lcd.backlight();
-  lcd.clear();
-  lcd.print("Init System...");
-  delay(1000);
+  displayDebug("System Init...", "Please wait", 1500);
+  delay(1500);
 
   // Inisialisasi RTC
   Wire.begin(SDA_PIN, SCL_PIN);
   if (rtc.begin()) {
     rtcAvailable = true;
-    Serial.println("✅ RTC ditemukan!");
-    
-    // Jika RTC kehilangan daya, atur ke waktu kompilasi
+    Serial.println("✅ RTC Found");
     if (rtc.lostPower()) {
-      Serial.println("⚠️ RTC kehilangan daya, mengatur waktu ke waktu kompilasi...");
       rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     }
   } else {
-    Serial.println("❌ RTC tidak ditemukan!");
+    Serial.println("❌ RTC Not Found!");
     rtcAvailable = false;
   }
 
-  // [DIUBAH] Load konfigurasi
+  // Load konfigurasi dari EEPROM
   ssid = readFromEEPROM(ADDR_SSID);
   password = readFromEEPROM(ADDR_PASS);
-  serverUrl_DomainOnly = readFromEEPROM(ADDR_URL); // Baca HANYA domain
+  serverUrl_DomainOnly = readFromEEPROM(ADDR_URL);
   apiKey = readFromEEPROM(ADDR_API);
+  deviceName = readFromEEPROM(ADDR_DEVICE);
 
-  // Nonaktifkan fitur yang bisa menyebabkan disconnect
-  wifi_set_sleep_type(NONE_SLEEP_T);   // Jangan tidur
-  WiFi.setAutoReconnect(true);         // Auto reconnect
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);  // No sleep
+  // Optimasi WiFi
+  WiFi.setAutoReconnect(true);
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
-  // Force 802.11n mode (lebih stabil)
-  wifi_set_phy_mode(PHY_MODE_11N);
-
-  // Atur output power (coba 20.5 untuk lebih stabil)
-  WiFi.setOutputPower(20.5);
-
-  // Bersihkan spasi
+  // Bersihkan dan validasi konfigurasi
   ssid.trim();
   password.trim();
   serverUrl_DomainOnly.trim();
   apiKey.trim();
+  deviceName.trim();
 
-  // [DIUBAH] Bangun URL lengkap
+  if (deviceName == "") deviceName = "RFID_Absensi";
   if (serverUrl_DomainOnly != "") {
-    serverUrl_Full = "http://" + serverUrl_DomainOnly + "/api/rfid/catat";  // Sesuaikan path jika perlu
+    serverUrl_Full = "http://" + serverUrl_DomainOnly + "/api/rfid/catat";
   }
 
   Serial.println("SSID: " + ssid);
-  Serial.println("URL Server: " + serverUrl_Full);  // Tampilkan URL lengkap
-  Serial.println("API Key: " + apiKey);
+  Serial.println("Device: " + deviceName);
+  Serial.println("URL Server: " + serverUrl_Full);
 
-  // Inisialisasi Hardware
+  // Inisialisasi Hardware SPI
   SPI.begin();
   pinMode(SS_RFID, OUTPUT);
   pinMode(SS_SD, OUTPUT);
@@ -381,326 +612,398 @@ void setup() {
   // SD Card Init
   selectSD();
   if (!SD.begin(SS_SD)) {
-    Serial.println("❌ SD Card gagal!");
-    lcd.clear();
-    lcd.print("SD Error!");
+    Serial.println("❌ SD Card Error!");
+    displayDebug("SD Card Error", "Check Card", 2000);
   } else {
-    Serial.println("💾 SD Card siap.");
-    lcd.clear();
-    lcd.print("SD Ready");
+    Serial.println("💾 SD Card Ready");
   }
   deselectAll();
-  delay(1000);
 
-  // Logika Koneksi / AP Mode
+  // ============================================
+  // 🔧 LOGIKA KONEKSI WIFI YANG DIPERBAIKI 🔧
+  // ============================================
+
   if (ssid == "") {
+    // Jika SSID kosong, langsung mode AP
+    Serial.println("SSID kosong, masuk mode AP");
     startAPConfig();
   } else {
+    // Coba koneksi WiFi
     connectWiFi();
+
+    // PERBAIKAN: Jika WiFi gagal, MASUK MODE AP
     if (!wifiConnected) {
-      startAPConfig();  // Fallback ke AP jika config WiFi salah
+      Serial.println("❌ WiFi gagal, masuk mode AP");
+      displayDebug("WiFi Failed", "Entering AP Mode", 2000);
+      delay(2000);
+      startAPConfig();  // MASUK MODE AP JIKA WIFI GAGAL
+    } else {
+      // Cek koneksi internet setelah WiFi terhubung
+      checkInternetConnection();
     }
   }
 
-  lcd.clear();
-  lcd.print("Siap Scan Kartu");
-  Serial.println("✅ Siap membaca kartu RFID...");
+  // JIKA TIDAK DI MODE AP, tampilkan Ready to Scan
+  if (!apModeActive) {
+    displayReady();
+    Serial.println("✅ System ready, waiting for RFID card...");
+  }
 }
 
 // =============================
 // 🔁 LOOP
 // =============================
 void loop() {
-  // Selalu jalankan handleClient, walaupun tidak di AP mode
-  server.handleClient();
+  // Handle web server jika di AP mode
   if (apModeActive) {
+    server.handleClient();
     dnsServer.processNextRequest();
+    return;
   }
 
-  // Cek koneksi WiFi & sinkronisasi
-  if (!apModeActive && millis() - lastCheck > 10000) {
-    checkWiFiAndSync();
+  // Cek jika perlu kembali ke Ready to Scan
+  if (returningToReady && millis() > readyReturnTime) {
+    displayReady();
+  }
+
+  // Cek koneksi WiFi setiap 30 detik
+  static unsigned long lastCheck = 0;
+  if (millis() - lastCheck > 100000) {
+    checkWiFiAndInternet();
     lastCheck = millis();
+  }
+
+  // Auto-sync RTC setiap 1 jam jika internet tersedia
+  if (internetAvailable && millis() - lastSyncTime > SYNC_INTERVAL) {
+    syncRTCwithNTP();
+  }
+
+  // Update status display setiap 3 detik
+  static unsigned long statusUpdate = 0;
+  if (millis() - statusUpdate > 100000) {
+    updateStatusDisplay();
+    statusUpdate = millis();
   }
 
   // Baca kartu RFID
   selectRFID();
   if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
     deselectAll();
-    return;  // Tidak ada kartu, keluar dari loop
+    delay(50);
+    return;
   }
 
-  uid = "";  // PENTING: reset UID sebelumnya
+  // Baca UID kartu
+  uid = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
     uid += String(rfid.uid.uidByte[i], HEX);
   }
   uid.toUpperCase();
   deselectAll();
 
-  // =============================
-  // 🔥 LOGIKA KARTU RESET
-  // =============================
+  // Logika kartu reset
   if (uid == UID_RESET) {
     resetSystemEEPROM();
-    return;  // hentikan proses scan
+    return;
   }
 
-  Serial.println("🎫 UID Kartu : " + uid);
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("UID:");
-  lcd.setCursor(0, 1);
-  lcd.print(uid);
+  Serial.println("🎫 UID Kartu: " + uid);
+  displayDebug("Card Detected", "Processing...", 1500);
 
   // Buat JSON untuk dikirim
   String jsonData = "{\"api_key\":\"" + apiKey + "\",\"uid\":\"" + uid + "\"}";
 
-  if (wifiConnected && !apModeActive) {
+  // LOGIKA: Selalu simpan data offline dulu
+  saveOfflineData(jsonData);
+
+  // Coba kirim ke server jika WiFi tersedia DAN internet tersedia
+  if (WiFi.status() == WL_CONNECTED && internetAvailable) {
     if (sendData(jsonData)) {
-      // LCD akan di-update di dalam sendData()
+      // Jika berhasil, hapus dari data offline
+      removeFromOfflineData(uid);
     } else {
-      saveOfflineData(jsonData);
-      lcd.clear();
-      lcd.print("Gagal Kirim!");
-      lcd.setCursor(0, 1);
-      lcd.print("Simpan Offline");
+      // Jika gagal kirim, cek ulang koneksi internet
+      internetAvailable = false;
+      displayDebug("Send Failed", "Saved Offline", 2000);
       beep();
     }
   } else {
-    saveOfflineData(jsonData);
-    delay(800);
-    lcd.clear();
-    lcd.print("Mode Offline");
-    lcd.setCursor(0, 1);
-    lcd.print("Simpan Data");
-    beep();  // Beep 1x untuk offline
+    displayDebug("Offline Mode", "Data Saved", 2000);
+    beep();
   }
-
-  delay(2000);  // Tampilkan pesan di LCD selama 2 detik
-  lcd.clear();
-  lcd.print("Siap Scan Lagi");
 }
 
 // =============================
-// 📶 WIFI
+// 📶 FUNGSI WIFI & INTERNET - DIPERBAIKI
 // =============================
 void connectWiFi() {
-  Serial.println("🔄 Menghubungkan WiFi...");
-  lcd.clear();
-  lcd.print("Koneksi WiFi...");
+  displayDebug("Connecting WiFi", ssid, 0, false);
+  Serial.println("🔄 Connecting WiFi...");
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid.c_str(), password.c_str());
 
   unsigned long startAttempt = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 10000) {
+  int attempts = 0;
+
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
     delay(500);
     Serial.print(".");
+    attempts++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\n✅ WiFi Terhubung!");
-    Serial.println(WiFi.localIP());
-    lcd.clear();
-    lcd.print("WiFi OK:");
-    lcd.setCursor(0, 1);
-    lcd.print(WiFi.localIP().toString());
     wifiConnected = true;
     apModeActive = false;
-    dnsServer.stop();
-    server.stop();  // Hentikan server AP
+
+    displayDebug("WiFi Connected", WiFi.localIP().toString(), 1500);
+    Serial.println("\n✅ WiFi Connected!");
+
+    // Cek koneksi internet setelah WiFi terhubung
+    checkInternetConnection();
+
+    // Sinkronisasi data offline jika internet tersedia
+    if (internetAvailable) {
+      sendOfflineData();
+    }
   } else {
-    Serial.println("\n❌ WiFi Gagal!");
-    lcd.clear();
-    lcd.print("WiFi Offline");
-    lcd.setCursor(0, 1);
-    lcd.print("AP Mode");
+    // PERBAIKAN: Set wifiConnected ke false
     wifiConnected = false;
+    internetAvailable = false;
+    Serial.println("\n❌ WiFi Connection Failed");
   }
-  delay(1000);
 }
 
-void checkWiFiAndSync() {
-  if (apModeActive)
-    return;  // Jangan cek jika sedang mode AP
-
+void checkWiFiAndInternet() {
   if (WiFi.status() != WL_CONNECTED) {
     wifiConnected = false;
-    Serial.println("Koneksi WiFi terputus, mencoba konek ulang...");
-    connectWiFi();
+    internetAvailable = false;
+    Serial.println("⚠️ WiFi disconnected");
 
-    if (!wifiConnected) {
-      Serial.println("Masih gagal konek. Masuk mode AP.");
-      startAPConfig();  // Fallback ke mode AP
+    // Coba reconnect hanya jika SSID tidak kosong
+    if (ssid != "") {
+      Serial.println("Trying to reconnect...");
+      WiFi.begin(ssid.c_str(), password.c_str());
+
+      // Tunggu 5 detik untuk koneksi
+      unsigned long start = millis();
+      while (WiFi.status() != WL_CONNECTED && millis() - start < 5000) {
+        delay(100);
+      }
+
+      if (WiFi.status() == WL_CONNECTED) {
+        wifiConnected = true;
+        displayDebug("WiFi Reconnected", "Checking...", 1500);
+        Serial.println("✅ WiFi reconnected!");
+        // Cek koneksi internet setelah reconnect
+        checkInternetConnection();
+
+        // Kirim data offline jika internet tersedia
+        if (internetAvailable) {
+          sendOfflineData();
+        }
+      } else {
+        internetAvailable = false;
+      }
     }
   } else {
     wifiConnected = true;
-    sendOfflineData();  // Jika terhubung, sinkronisasi data
+    // Cek koneksi internet secara periodic
+    checkInternetConnection();
   }
 }
 
 // =============================
-// 🚀 KIRIM DATA ONLINE
+// 🔄 UPDATE STATUS DISPLAY
+// =============================
+void updateStatusDisplay() {
+  if (apModeActive) return;
+
+  // Hanya update baris kedua jika sedang di mode Ready
+  lcd.setCursor(0, 1);
+  lcd.print("                ");
+
+  String currentTime = getCurrentTime();
+  String timeHM = currentTime.substring(0,5);
+  if (WiFi.status() == WL_CONNECTED) {
+    if (internetAvailable) {
+      timeHM += " W+I";
+    } else {
+      timeHM += " W-O";
+    }
+  } else {
+    timeHM += " OFF";
+  }
+
+  if (!rtcAvailable) {
+    timeHM += " R";
+  }
+
+  lcd.setCursor(0, 1);
+  if (timeHM.length() > 16) timeHM = timeHM.substring(0, 16);
+  lcd.print(timeHM);
+}
+
+// =============================
+// 🚀 KIRIM DATA KE SERVER
 // =============================
 bool sendData(String jsonData) {
-
-  if (WiFi.status() != WL_CONNECTED)
+  if (WiFi.status() != WL_CONNECTED || !internetAvailable) {
     return false;
+  }
 
   HTTPClient http;
-
-  Serial.print("[HTTP] Mengirim ke: ");
+  Serial.print("[HTTP] Sending to: ");
   Serial.println(serverUrl_Full);
 
-  if (!http.begin(client, serverUrl_Full)) {  // Gunakan URL LENGKAP
-    Serial.println("❌ Gagal memulai HTTPs!");
+  if (!http.begin(client, serverUrl_Full)) {
+    Serial.println("HTTP begin failed");
     return false;
   }
 
   http.addHeader("Content-Type", "application/json");
-  // [DIUBAH] Kirim API Key di header (lebih aman)
   http.addHeader("X-API-Key", apiKey);
-  http.setReuse(true);  // Jaga koneksi tetap terbuka
+  http.setTimeout(5000);
 
-  int httpCode = http.POST(jsonData);  // Kirim JSON
+  displayDebug("Sending Data", "Please wait...", 0, false);
+  int httpCode = http.POST(jsonData);
 
   if (httpCode > 0) {
     String response = http.getString();
-    Serial.println("📡 Respon Server (" + String(httpCode) + "): " + response);
+    Serial.println("📡 Server Response (" + String(httpCode) + "): " + response);
 
     StaticJsonDocument<256> doc;
     if (deserializeJson(doc, response) == DeserializationError::Ok) {
-      const char *status = doc["status"];  // cth: "masuk", "pulang", "error"
+      const char *status = doc["status"];
       const char *nama = doc["nama"];
       const char *msg = doc["message"];
 
       if (status && nama) {
-        lcd.clear();
-        lcd.print(nama);  // Tampilkan nama
-        lcd.setCursor(0, 1);
+        displayDebug(nama, String(status), 2000);
 
-        // [PERBAIKAN] Cek status dari skrip PHP Anda
-        if (String(status) == "masuk") {
-          lcd.print("Masuk Sukses");
+        if (String(status) == "masuk" || String(status) == "pulang") {
+          // Kirim notifikasi Telegram
+          if (internetAvailable && TELEGRAM_BOT_TOKEN != "" && TELEGRAM_CHAT_ID != "") {
+            sendAttendanceNotification(nama, String(status), uid);
+          }
           beep();
-        } else if (String(status) == "pulang") {
-          lcd.print("Pulang Sukses");
+        } else if (String(status) == "error" || String(status) == "tidak_terdaftar") {
+          displayError(msg ? String(msg) : "Unknown");
+          if (internetAvailable) {
+            sendErrorLog(msg ? String(msg) : "Server error", uid);
+          }
           beep();
-        } else if (String(status) == "sudah_masuk" || String(status) == "sudah_masuk_pulang") {
-          lcd.print("Sudah Absen");
+        } else if (String(status) == "sudah_masuk_pulang") {
+          displayDebug(nama, "Sudah Msk Plng", 2000);
           beep();
-        } else {                           // "error" atau status tidak dikenal
-          lcd.print(msg ? msg : "Error");  // Tampilkan pesan error server
-          sendErrorLog(msg ? String(msg) : "Unknown error from server", uid);
+        } else if (String(status) == "sudah_masuk") {
+          displayDebug(nama, "Belum Pulang", 2000);
           beep();
         }
-
       } else if (String(status) == "tidak_terdaftar") {
-        lcd.clear();
-        lcd.print("UID:" + uid);
-        lcd.setCursor(0, 1);
-        lcd.print("Tidak Terdaftar");
+        displayError("Tidak Terdaftar");
         beep();
-      } else {  // Gagal parse JSON atau format beda
-        lcd.clear();
-        lcd.print("Resp Server Err");
-        lcd.setCursor(0, 1);
-        lcd.print(response.substring(0, 16));  // Tampilkan potongan respon
-        sendErrorLog("Format respon server tidak valid" + String(msg), "N/A");
+      } else {
+        displayDebug("Error:", "Lihat Log Tele", 2000);
         beep();
+        if (internetAvailable) {
+          sendErrorLog(msg ? String(msg) : "Server error", uid);
+        }
       }
-    } else {  // JSON tidak valid
-      lcd.clear();
-      lcd.print("Gagal Parse JSON");
-      beep();
     }
 
     http.end();
-    return (httpCode == HTTP_CODE_OK);  // Sukses jika 200 OK
+    return (httpCode == 200);
   } else {
-    Serial.printf("❌ HTTP Gagal, error: %s\n", http.errorToString(httpCode).c_str());
-    lcd.print("HTTP Gagal");
+    Serial.println("HTTP failed: " + String(http.errorToString(httpCode).c_str()));
     http.end();
+
     return false;
   }
 }
 
 // =============================
-// 💾 SIMPAN/KIRIM OFFLINE
+// 💾 FUNGSI OFFLINE DATA
 // =============================
 void saveOfflineData(const String &data) {
-  // Parse JSON untuk menambahkan tanggal dan jam
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, data);
-  
+
   if (error) {
-    Serial.println("⚠️ Gagal parse JSON untuk data offline!");
+    Serial.println("Failed to parse JSON for offline");
     return;
   }
-  
-  // Tambahkan tanggal dan jam dari RTC
+
   doc["tanggal"] = getCurrentDate();
   doc["jam"] = getCurrentTime();
-  
-  // Serialize ke string
+
   String offlineData;
   serializeJson(doc, offlineData);
-  
+
   selectSD();
   File file = SD.open("/offline.txt", FILE_WRITE);
   if (!file) {
-    Serial.println("⚠️ Tidak bisa buka offline.txt!");
+    Serial.println("Failed to open offline.txt");
     deselectAll();
     return;
   }
-  file.seek(file.size());  // Pindah ke akhir file
+
+  file.seek(file.size());
   file.println(offlineData);
   file.close();
-  Serial.println("💾 Data disimpan offline!");
+
+  Serial.println("💾 Data saved offline");
   deselectAll();
 }
 
 void sendOfflineData() {
+  if (WiFi.status() != WL_CONNECTED || !internetAvailable) {
+    Serial.println("WiFi or Internet offline, can't sync");
+    return;
+  }
+
   selectSD();
   File file = SD.open("/offline.txt", FILE_READ);
   if (!file || file.size() == 0) {
-    file.close();
+    if (file) file.close();
     deselectAll();
     return;
   }
 
-  Serial.println("🔁 Sinkronisasi data offline...");
-  lcd.clear();
-  lcd.print("Sinkronisasi...");
+  displayDebug("Syncing Offline", "Data...", 0, false);
+  Serial.println("🔁 Syncing offline data...");
 
-  String buffer = "";  // Buffer untuk menyimpan data yg gagal dikirim ulang
+  String buffer = "";
+  int successCount = 0;
+
   while (file.available()) {
     String line = file.readStringUntil('\n');
     line.trim();
+
     if (line.length() > 0) {
-      // Parse JSON yang ada tanggal dan jam
       StaticJsonDocument<256> doc;
       DeserializationError error = deserializeJson(doc, line);
-      
+
       if (!error) {
-        // Buat data baru tanpa tanggal dan jam (hanya api_key dan uid)
         String apiKey = doc["api_key"].as<String>();
         String uid = doc["uid"].as<String>();
         String jsonToSend = "{\"api_key\":\"" + apiKey + "\",\"uid\":\"" + uid + "\"}";
-        
-        if (!sendData(jsonToSend)) {
-          // Jika gagal kirim, simpan kembali ke buffer (dengan tanggal dan jam asli)
+
+        if (sendData(jsonToSend)) {
+          successCount++;
+          delay(300);
+        } else {
+          // Simpan kembali jika gagal dikirim
           buffer += line + "\n";
-          Serial.println("Gagal kirim, sinkronisasi berhenti.");
-          break;
+          break;  // Stop jika ada kegagalan
         }
-      } else {
-        Serial.println("⚠️ Gagal parse JSON dari file offline");
       }
     }
   }
+
   file.close();
 
-  // Tulis ulang file offline.txt HANYA dengan data yg gagal
+  // Update file offline dengan data yang gagal dikirim
   SD.remove("/offline.txt");
   if (buffer.length() > 0) {
     File f = SD.open("/offline.txt", FILE_WRITE);
@@ -708,68 +1011,93 @@ void sendOfflineData() {
     f.close();
   }
 
-  Serial.println("✅ Sinkronisasi selesai!");
   deselectAll();
-  // Kembalikan ke layar siaga
-  lcd.clear();
-  lcd.print("Siap Scan Kartu");
+
+  if (successCount > 0) {
+    Serial.println("✅ Offline sync complete: " + String(successCount) + " data sent");
+    displayDebug("Sync Complete", String(successCount) + " sent", 1500);
+    sendOfflineSyncNotification(successCount);
+  }
 }
 
-// =============================
-// ⚙️ ERROR LOG
-// =============================
-void sendErrorLog(String errorMsg, String uid) {
-  if (WiFi.status() != WL_CONNECTED)
+void removeFromOfflineData(String uidToRemove) {
+  selectSD();
+  File file = SD.open("/offline.txt", FILE_READ);
+  if (!file) {
+    deselectAll();
     return;
+  }
 
-  HTTPClient http;
-  http.begin(client, "http://" + serverUrl_DomainOnly + "/app/log_error.php");
-  http.addHeader("Content-Type", "application/json");
+  String buffer = "";
+  bool found = false;
 
-  String json =
-    "{\"uid\":\"" + uid + "\","
-                          "\"error\":\""
-    + errorMsg + "\","
-                 "\"device\":\"RFID_GATE_1\"}";
+  while (file.available()) {
+    String line = file.readStringUntil('\n');
+    line.trim();
 
-  http.POST(json);
-  http.end();
+    if (line.length() > 0) {
+      StaticJsonDocument<256> doc;
+      DeserializationError error = deserializeJson(doc, line);
+
+      if (!error) {
+        String uid = doc["uid"].as<String>();
+        if (uid != uidToRemove) {
+          buffer += line + "\n";
+        } else {
+          found = true;
+        }
+      }
+    }
+  }
+
+  file.close();
+
+  // Tulis ulang file tanpa data yang sudah dikirim
+  SD.remove("/offline.txt");
+  if (buffer.length() > 0) {
+    File f = SD.open("/offline.txt", FILE_WRITE);
+    f.print(buffer);
+    f.close();
+  }
+
+  deselectAll();
+
+  if (found) {
+    Serial.println("Removed sent data from offline file");
+  }
 }
 
 // =============================
-// ⚙️ UTILITY (SPI & BUZZER)
+// ⚙️ UTILITY FUNCTIONS
 // =============================
 void selectRFID() {
   digitalWrite(SS_SD, HIGH);
   digitalWrite(SS_RFID, LOW);
 }
+
 void selectSD() {
   digitalWrite(SS_RFID, HIGH);
   digitalWrite(SS_SD, LOW);
 }
+
 void deselectAll() {
   digitalWrite(SS_RFID, HIGH);
   digitalWrite(SS_SD, HIGH);
 }
+
 void beep() {
   digitalWrite(BUZZER_PIN, HIGH);
-  delay(250);
+  delay(150);
   digitalWrite(BUZZER_PIN, LOW);
 }
 
 // =============================
-// RESET SISTEM
+// 🔄 RESET SISTEM
 // =============================
 void resetSystemEEPROM() {
-  Serial.println("⚠️ KARTU RESET TERDETEKSI!");
+  displayDebug("RESET SYSTEM!", "Please wait...", 0, false);
+  Serial.println("⚠️ RESET CARD DETECTED!");
 
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Reset System");
-  lcd.setCursor(0, 1);
-  lcd.print("Mohon Tunggu");
-
-  // Beep panjang tanda reset
   digitalWrite(BUZZER_PIN, HIGH);
   delay(800);
   digitalWrite(BUZZER_PIN, LOW);
@@ -779,8 +1107,13 @@ void resetSystemEEPROM() {
     EEPROM.write(i, 0);
   }
   EEPROM.commit();
-  SD.remove("/offline.txt");
 
-  delay(1500);
+  // Hapus file offline
+  selectSD();
+  SD.remove("/offline.txt");
+  deselectAll();
+
+  displayDebug("System Reset", "Restarting...", 2000);
+  delay(2000);
   ESP.restart();
 }
