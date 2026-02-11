@@ -20,7 +20,7 @@ class DashboardController extends Controller
 
         // 1. Cek Role User
         if ($user->role === 'guru') {
-            return $this->dashboardGuru();
+            return $this->dashboardGuru($request);
         } elseif ($user->role === 'siswa') {
             return $this->dashboardSiswa($request);
         }
@@ -118,7 +118,7 @@ class DashboardController extends Controller
     }
 
     // 2. Logic Khusus Halaman Guru
-    public function dashboardGuru()
+    public function dashboardGuru(Request $request)
     {
         $user = Auth::user();
 
@@ -127,8 +127,17 @@ class DashboardController extends Controller
         $guru = Guru::where('user_id', $user->id)->first();
 
         if (!$guru) {
-            // Jika data guru tidak ditemukan, redirect atau tampilkan error
-            return redirect()->route('logout')->with('error', 'Data guru tidak ditemukan. Silakan hubungi admin.');
+             // 1. Logout user secara manual
+            Auth::logout();
+
+            // 2. Bersihkan sesi (Invalidate Session)
+            $request->session()->invalidate();
+
+            // 3. Regenerate Token (Keamanan)
+            $request->session()->regenerateToken();
+
+            // 4. Redirect ke halaman login dengan pesan error
+            return redirect('/login')->with('error', 'Data siswa tidak ditemukan. Hubungi Admin.');
         }
 
         // 1. Ambil SEMUA data absensi bulan ini ke dalam variabel (Collection)
@@ -175,7 +184,17 @@ class DashboardController extends Controller
         $siswa = Siswa::with('kelas')->where('user_id', $user->id)->first();
 
         if (!$siswa) {
-            return redirect()->route('logout')->with('error', 'Data siswa tidak ditemukan.');
+            // 1. Logout user secara manual
+            Auth::logout();
+
+            // 2. Bersihkan sesi (Invalidate Session)
+            $request->session()->invalidate();
+
+            // 3. Regenerate Token (Keamanan)
+            $request->session()->regenerateToken();
+
+            // 4. Redirect ke halaman login dengan pesan error
+            return redirect('/login')->with('error', 'Data siswa tidak ditemukan. Hubungi Admin.');
         }
 
         // Variabel pendukung untuk View
@@ -191,7 +210,7 @@ class DashboardController extends Controller
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->orderBy('tanggal', 'desc')
-            ->select('*', 'jam_masuk as jam') // Alias jam_masuk jadi 'jam'
+            ->select('*', 'jam_masuk')
             ->get();
 
         // 4. Hitung Ringkasan (H, S, I, A) untuk Kotak Statistik

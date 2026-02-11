@@ -82,7 +82,6 @@ class SiswaController extends Controller
 
             // 3. Generate QR Code
             $this->generateQrCode($siswa->nisn);
-
         });
 
         return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil disimpan!');
@@ -141,28 +140,44 @@ class SiswaController extends Controller
 
     public function generateAkun()
     {
-        $siswa_aktif = Siswa::where('status', 'aktif')->get();
+        // Ambil siswa aktif yang memiliki NIP (jaga-jaga jika ada data kosong)
+        $siswa_aktif = Siswa::where('status', 'aktif')
+            ->whereNotNull('nisn')
+            ->where('nisn', '!=', '')
+            ->get();
+
         $count = 0;
+        $updated = 0;
 
         foreach ($siswa_aktif as $s) {
-            // Cek apakah user sudah ada
-            $user = User::where('username', $s->nisn)->first();
+            // 1. Cari User berdasarkan username (NIP), atau Buat baru jika tidak ada
+            $user = User::firstOrCreate(
+                ['username' => $s->nisn], // Kondisi pencarian
+                [
+                    'password' => Hash::make($s->nisn), // Data jika dibuat baru
+                    'role'     => 'siswa',
+                ]
+            );
 
-            if (!$user) {
-                User::create([
-                    'username' => $s->nisn,
-                    'password' => Hash::make($s->nisn), // Default password = NISN
-                    'role' => 'siswa'
-                ]);
+            // Hitung jika user baru saja dibuat
+            if ($user->wasRecentlyCreated) {
                 $count++;
+            }
+
+            // 2. UPDATE user_id di tabel siswa
+            // Cek dulu apakah user_id-nya beda/kosong supaya tidak query update jika sudah sesuai
+            if ($s->user_id != $user->id) {
+                $s->user_id = $user->id;
+                $s->save(); // Simpan perubahan ke tabel siswa
+                $updated++;
             }
         }
 
-        return redirect()->back()->with('success', "Berhasil generate $count akun siswa.");
+        return redirect()->back()->with('success', "Selesai! $count akun baru dibuat, $updated data siswa ditautkan.");
     }
 
     // --- Helper Functions ---
-private function generateQrCode($code)
+    private function generateQrCode($code)
     {
         // 1. Generate QR Code Object
         $result = Builder::create()
@@ -179,5 +194,4 @@ private function generateQrCode($code)
         // getString() mengubah gambar menjadi string binary agar bisa disimpan oleh Storage::put
         Storage::disk('public')->put('qr/' . $code . '.png', $result->getString());
     }
-
 }

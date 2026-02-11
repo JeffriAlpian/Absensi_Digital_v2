@@ -138,24 +138,49 @@ class GuruController extends Controller
 
     public function generateAkun()
     {
-        $guru_aktif = Guru::where('status', 'aktif')->get();
+        // Ambil guru aktif yang memiliki NIP (jaga-jaga jika ada data kosong)
+        $guru_aktif = Guru::where('status', 'aktif')
+            ->whereNotNull('nip')
+            ->where('nip', '!=', '')
+            ->get();
+
         $count = 0;
+        $updated = 0;
 
         foreach ($guru_aktif as $g) {
-            // Cek apakah user sudah ada
-            $user = User::where('username', $g->nip)->first();
+            // 1. Cari atau Buat User
+            $user = User::firstOrCreate(
+                ['username' => $g->nip],
+                [
+                    'password' => Hash::make($g->nip),
+                    'role'     => 'guru',
+                    // 'name'  => $g->nama // Opsional: jika ingin nama di user ikut nama guru
+                ]
+            );
 
-            if (!$user) {
-                User::create([
-                    'username' => $g->nip,
-                    'password' => Hash::make($g->nip), // Default password = NIP
-                    'role' => 'guru'
-                ]);
+            // Hitung jika user baru
+            if ($user->wasRecentlyCreated) {
                 $count++;
             }
-        }
 
-        return redirect()->back()->with('success', "Berhasil generate $count akun guru.");
+            // --- PERBAIKAN DI SINI ---
+            // 2. Cek apakah Role-nya sudah benar 'guru'? Jika belum, paksa ubah.
+            // Ini menangani kasus user sudah ada (first) tapi role-nya masih default ('siswa')
+            if ($user->role !== 'guru') {
+                $user->role = 'guru';
+                $user->save(); // Simpan perubahan role
+            }
+            // -------------------------
+
+            // 3. UPDATE user_id di tabel guru
+            if ($g->user_id != $user->id) {
+                $g->user_id = $user->id;
+                $g->save();
+                $updated++;
+            }
+        }
+        
+        return redirect()->back()->with('success', "Selesai! $count akun baru dibuat, $updated data guru ditautkan.");
     }
 
     // Helper function
@@ -205,7 +230,8 @@ class GuruController extends Controller
 
     public function updateGuruProfile(Request $request)
     {
-        $user = Auth::user(); /** @var User $user */
+        $user = Auth::user();
+        /** @var User $user */
         $guru = Guru::where('user_id', $user->id)->first();
         $request->validate([
             'name' => 'required|string|max:255',
@@ -227,7 +253,8 @@ class GuruController extends Controller
             'password' => 'required|min:6|confirmed', // field konfirmasi harus bernama 'password_confirmation'
         ]);
 
-        $user = Auth::user(); /** @var User $user */
+        $user = Auth::user();
+        /** @var User $user */
 
         // Cek apakah password lama benar
         if (!Hash::check($request->current_password, $user->password)) {
