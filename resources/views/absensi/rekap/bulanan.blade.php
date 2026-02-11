@@ -122,9 +122,24 @@
                                     </td>
                                 @elseif($absen)
                                     @php
+                                        $statusTampil = $absen->status;
+                                        $keteranganTooltip = $absen->keterangan;
+                                        $supScript = ''; // Untuk tanda kecil (misal T = Terlambat)
+
                                         if ($absen->status == 'H') {
                                             $h++;
-                                            $bg = 'bg-green-50 text-green-700';
+
+                                            // LOGIKA CEK PULANG
+                                            // Jika Jam Pulang Kosong DAN Tanggal sudah lewat (kemarin dst)
+                                            if (empty($absen->jam_pulang) && $tglStr < date('Y-m-d')) {
+                                                // TANDAI WARNA ORANYE (Lupa Pulang)
+                                                $bg = 'bg-orange-100 text-orange-700 border-orange-200';
+                                                $keteranganTooltip .= ' (Lupa Absen Pulang)';
+                                                $supScript = '<sup class="text-orange-600 font-bold ml-0.5">?</sup>'; // Tanda tanya kecil
+                                            } else {
+                                                // NORMAL (Hijau)
+                                                $bg = 'bg-green-50 text-green-700';
+                                            }
                                         } elseif ($absen->status == 'S') {
                                             $s++;
                                             $bg = 'bg-yellow-50 text-yellow-700';
@@ -137,13 +152,21 @@
                                         } else {
                                             $bg = '';
                                         }
+
+                                        // Cek Terlambat (Override supScript jika ada, atau gabung)
+                                        if (str_contains($absen->keterangan, 'Terlambat')) {
+                                            $supScript .=
+                                                '<sup class="text-red-500 font-bold text-[8px] ml-0.5">T</sup>';
+                                        }
                                     @endphp
-                                    <td class="border border-gray-200 text-center font-bold {{ $bg }} cursor-help"
-                                        title="{{ $absen->keterangan }}">
-                                        {{ $absen->status }}
-                                        @if (str_contains($absen->keterangan, 'Terlambat'))
-                                            <sup class="text-red-500 font-bold text-[8px]">T</sup>
-                                        @endif
+
+                                    <td class="border border-gray-200 text-center font-bold {{ $bg }} cursor-help transition hover:brightness-95"
+                                        title="{{ $keteranganTooltip }}">
+
+                                        {{ $statusTampil }}
+
+                                        {{-- Tampilkan tanda kecil (T atau ?) --}}
+                                        {!! $supScript !!}
                                     </td>
                                 @else
                                     @if ($tglStr <= date('Y-m-d'))

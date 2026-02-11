@@ -172,7 +172,7 @@ class AbsensiRfidController extends Controller
                 'guru_id' => $guru->id,
                 'device_id' => $deviceId,
                 'tanggal' => $tanggal,
-                'jam' => $jam,
+                'jam_masuk' => $jam,
                 'status' => 'H',
                 'keterangan' => $keterangan
             ]);

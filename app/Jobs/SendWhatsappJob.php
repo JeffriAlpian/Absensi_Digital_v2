@@ -36,7 +36,7 @@ class SendWhatsappJob implements ShouldQueue
         // Kita beri jeda acak antara 5 sampai 15 detik sebelum eksekusi request.
         // Karena worker memproses antrean satu per satu, ini akan membuat efek:
         // Kirim -> Tunggu -> Kirim -> Tunggu.
-        sleep(rand(5, 15)); 
+        sleep(rand(8, 17)); 
 
         // --- AMBIL CONFIG (Sama seperti service lama) ---
         $profil = ProfilSekolah::first();
@@ -63,7 +63,7 @@ class SendWhatsappJob implements ShouldQueue
             } else {
                 Log::error("WA Gagal (API): " . $response->body());
                 // Opsional: Release job kembali ke antrean jika gagal (retry)
-                // $this->release(60); 
+                $this->release(60); 
             }
 
         } catch (\Exception $e) {

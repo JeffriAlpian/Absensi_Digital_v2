@@ -90,6 +90,8 @@ class PengaturanController extends Controller
         $profil->kepala_sekolah = $request->kepala_sekolah;
         $profil->nip_kepala_sekolah = $request->nip_kepsek;
         $profil->key_wa_sidobe = $request->api_key_wa;
+        $profil->jam_masuk_guru = $request->jam_masuk_guru;
+        $profil->jam_pulang_guru = $request->jam_pulang_guru;
         $profil->latitude = $request->latitude;
         $profil->longitude = $request->longitude;
         $profil->radius = $request->radius;

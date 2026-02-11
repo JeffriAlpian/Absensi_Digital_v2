@@ -36,7 +36,7 @@ class CetakKartuController extends Controller
             ];
         });
 
-        return $this->prosesCetakPDF($listKartu, 'Kartu Pelajar');
+        return $this->prosesCetakPDF($listKartu, 'Kartu_Pelajar');
     }
 
     // --- 2. PUBLIC METHOD: CETAK GURU (Nanti bisa dipakai) ---
@@ -60,7 +60,7 @@ class CetakKartuController extends Controller
             ];
         });
 
-        return $this->prosesCetakPDF($listKartu, 'Kartu Guru');
+        return $this->prosesCetakPDF($listKartu, 'Kartu_Guru');
     }
 
     // --- 3. PRIVATE METHOD: INTINYA DISINI (Reusable) ---
@@ -128,6 +128,10 @@ class CetakKartuController extends Controller
             $pdf->SetFont('Arial', 'B', 9);
             $name = $this->shortenName($data->nama); // Kita pindah logic nama ke fungsi kecil di bawah
 
+            if ($judulFile == 'Kartu_Guru') {
+                $name = $data->nama;
+            }
+
             // 3. Render Teks (Dinamis sesuai data yang dikirim)
             $labelW = 12; // Sedikit dilebarkan
             $gap = 2;
@@ -162,7 +166,7 @@ class CetakKartuController extends Controller
             // 4. Render QR Code
             $qr_path = public_path('storage/qr/' . $data->qr_code . '.png');
             if (file_exists($qr_path)) {
-                $pdf->Image($qr_path, $x + $card_width - 28, $y + ($card_height - 20) / 2, 20, 20);
+                $pdf->Image($qr_path, $x + $card_width - 29, $y + ($card_height - 16) / 2, 20, 20);
             }
 
             $index++;

@@ -563,6 +563,7 @@ void setup() {
   if (rtc.begin()) {
     rtcAvailable = true;
     Serial.println("✅ RTC Found");
+
     if (rtc.lostPower()) {
       rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     }
@@ -640,8 +641,13 @@ void setup() {
     } else {
       // Cek koneksi internet setelah WiFi terhubung
       checkInternetConnection();
+      if (internetAvailable) {
+        syncRTCwithNTP();
+      }
     }
   }
+
+
 
   // JIKA TIDAK DI MODE AP, tampilkan Ready to Scan
   if (!apModeActive) {
@@ -824,7 +830,7 @@ void updateStatusDisplay() {
   lcd.print("                ");
 
   String currentTime = getCurrentTime();
-  String timeHM = currentTime.substring(0,5);
+  String timeHM = currentTime.substring(0, 5);
   if (WiFi.status() == WL_CONNECTED) {
     if (internetAvailable) {
       timeHM += " W+I";

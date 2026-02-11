@@ -136,6 +136,28 @@ class GuruController extends Controller
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil diperbarui.');
     }
 
+    public function generateAkun()
+    {
+        $guru_aktif = Guru::where('status', 'aktif')->get();
+        $count = 0;
+
+        foreach ($guru_aktif as $g) {
+            // Cek apakah user sudah ada
+            $user = User::where('username', $g->nip)->first();
+
+            if (!$user) {
+                User::create([
+                    'username' => $g->nip,
+                    'password' => Hash::make($g->nip), // Default password = NIP
+                    'role' => 'guru'
+                ]);
+                $count++;
+            }
+        }
+
+        return redirect()->back()->with('success', "Berhasil generate $count akun guru.");
+    }
+
     // Helper function
     private function generateQrCode($code)
     {

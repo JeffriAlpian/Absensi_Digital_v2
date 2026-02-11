@@ -304,13 +304,13 @@ class RekapController extends Controller
 
         // 1. UPDATE DATA (AUTO ALPHA)
         // Update Absensi H tapi tidak pulang pada tanggal < hari ini
-        Absensi::where('status', 'H')
-            ->whereNull('jam_pulang')
-            ->whereDate('tanggal', '<', Carbon::now()->format('Y-m-d'))
-            ->update([
-                'status' => 'A',
-                'keterangan' => 'Lupa Absen Pulang (Auto System)'
-            ]);
+        // Absensi::where('status', 'H')
+        //     ->whereNull('jam_pulang')
+        //     ->whereDate('tanggal', '<', Carbon::now()->format('Y-m-d'))
+        //     ->update([
+        //         'status' => 'A',
+        //         'keterangan' => 'Lupa Absen Pulang (Auto System)'
+        //     ]);
 
         // 2. QUERY USER
         if ($kategori == 'guru') {

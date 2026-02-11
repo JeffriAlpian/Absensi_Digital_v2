@@ -24,30 +24,60 @@ class AbsensiController extends Controller
 
     public function manualIndex(Request $request)
     {
+        // 1. Ambil Input Filter
         $tanggal = $request->input('tanggal', date('Y-m-d'));
-        $kategori = $request->input('kategori', 'siswa'); // Default siswa
-        $kelasId = $request->input('kelas');
+        $kategori = $request->input('kategori', 'siswa');
+        $kelasId = $request->input('kelas_id'); // Sesuaikan nama input select di view
+        $statusFilter = $request->input('status'); // Input baru: 'belum_absen', 'H', 'S', 'I', 'A', atau null (semua)
 
-        $listKelas = Kelas::all();
+        $listKelas = Kelas::orderBy('nama_kelas', 'asc')->get();
         $dataList = [];
 
+        // 2. Tentukan Model Berdasarkan Kategori
         if ($kategori == 'siswa') {
-            // Ambil data siswa + relasi absensi pada tanggal tersebut
-            $query = Siswa::query();
+            $query = Siswa::query()->where('status', 'aktif'); // Pastikan hanya siswa aktif
+
+            // Filter Kelas
             if ($kelasId) {
                 $query->where('id_kelas', $kelasId);
             }
-            $dataList = $query->with(['kelas', 'absensi' => function ($q) use ($tanggal) {
-                $q->where('tanggal', $tanggal);
-            }])->get();
-        } elseif ($kategori == 'guru') {
-            // Ambil data guru + relasi absensi
-            $dataList = Guru::with(['absensi' => function ($q) use ($tanggal) {
-                $q->where('tanggal', $tanggal);
-            }])->get();
+        } else {
+            $query = Guru::query()->where('status', 'aktif');
         }
 
-        return view('absensi.manual.index', compact('tanggal', 'kategori', 'kelasId', 'listKelas', 'dataList'));
+        // 3. Eager Load Absensi (Agar data absen tampil di list)
+        $query->with(['absensi' => function ($q) use ($tanggal) {
+            $q->whereDate('tanggal', $tanggal);
+        }]);
+
+        // 4. LOGIKA FILTER STATUS (Inti Pertanyaan Anda)
+        if ($statusFilter) {
+            if ($statusFilter == 'belum_absen') {
+                // A. Tampilkan yang BELUM ada data absen hari ini
+                $query->whereDoesntHave('absensi', function ($q) use ($tanggal) {
+                    $q->whereDate('tanggal', $tanggal);
+                });
+            } else {
+                // B. Tampilkan berdasarkan status spesifik (H, S, I, A)
+                $query->whereHas('absensi', function ($q) use ($tanggal, $statusFilter) {
+                    $q->whereDate('tanggal', $tanggal)
+                        ->where('status', $statusFilter);
+                });
+            }
+        }
+
+        // 5. Eksekusi Query
+        // Urutkan nama abjad agar rapi
+        $dataList = $query->orderBy('nama', 'asc')->get();
+
+        return view('absensi.manual.index', compact(
+            'tanggal',
+            'kategori',
+            'kelasId',
+            'statusFilter', // Kirim balik ke view agar dropdown terpilih
+            'listKelas',
+            'dataList'
+        ));
     }
 
     // =========================================================================
