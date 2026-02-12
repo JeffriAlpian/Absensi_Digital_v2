@@ -52,9 +52,6 @@ class SendWhatsappJob implements ShouldQueue
             return;
         }
 
-
-
-
         // --- KIRIM REQUEST ---
         try {
             $response = Http::withHeaders([
@@ -63,7 +60,7 @@ class SendWhatsappJob implements ShouldQueue
             ])->timeout(30)
                 ->post('https://api.sidobe.com/wa/v1/send-message', [
                     'phone' => $this->no_wa,
-                    'message' => $finalMessage
+                    'message' => $this->pesan,
                 ]);
 
             if ($response->ok()) {
@@ -114,8 +111,8 @@ class SendWhatsappJob implements ShouldQueue
         $text .= "Status: <b>{$status}</b>\n";
         $text .= "Fitur: {$this->sumber}\n"; // Admin melihat fitur apa yang mentrigger
         $text .= "Tujuan: {$this->no_wa}\n";
-        $text .= "Detail: <code>{$detail}</code>";
-        $text .= "Sumber: <code>{$domain}</code>";
+        $text .= "Detail: <code>{$detail}</code>\n";
+        $text .= "Sumber: <code>{$detail}</code>";
 
         try {
             // Gunakan HTTP Client Laravel juga disini biar konsisten
@@ -127,5 +124,6 @@ class SendWhatsappJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::warning("Gagal kirim log ke Telegram: " . $e->getMessage());
         }
+        
     }
 }
