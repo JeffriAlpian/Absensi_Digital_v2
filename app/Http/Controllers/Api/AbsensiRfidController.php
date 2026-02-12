@@ -127,7 +127,7 @@ class AbsensiRfidController extends Controller
                 'keterangan' => $keterangan
             ]);
 
-            $pesanWa = "Info Absen:\nAnanda *$siswa->nama* ($siswa->nisn)\ntelah *ABSEN MASUK*" . ($keterangan == 'Terlambat' ? ' (TERLAMBAT)' : '') . "\npada " . $now->format('d-m-Y H:i') . ". Terima kasih.\n\n> " . $profil->nama_sekolah;
+            $pesanWa = "Info Absen:\nAnanda *$siswa->nama* \nNISN: ($siswa->nisn)\ntelah *ABSEN MASUK*" . ($keterangan == 'Terlambat' ? ' (TERLAMBAT)' : '') . "\npada " . $now->format('d-m-Y H:i') . ".\n Terima kasih.\n\n> " . $profil->nama_sekolah;
 
             return ['status' => 'masuk', 'msg' => "Absen masuk " . ($keterangan ?: 'berhasil'), 'pesan_wa' => $pesanWa];
 
@@ -144,7 +144,7 @@ class AbsensiRfidController extends Controller
                     'device_id' => $deviceId // Update device kepulangan jika beda
                 ]);
 
-                $pesanWa = "Info Absen:\nAnanda *$siswa->nama* ($siswa->nisn)\ntelah *ABSEN PULANG*\npada " . $now->format('d-m-Y H:i') . ". Terima kasih.\n\n> " . $profil->nama_sekolah;
+                $pesanWa = "Info Absen:\nAnanda *$siswa->nama* \nNISN: ($siswa->nisn)\ntelah *ABSEN PULANG*\npada " . $now->format('d-m-Y H:i') . ". Terima kasih.\n\n> " . $profil->nama_sekolah;
 
                 return ['status' => 'pulang', 'msg' => "Absen pulang berhasil", 'pesan_wa' => $pesanWa];
             } else {

@@ -179,7 +179,7 @@ class GuruController extends Controller
                 $updated++;
             }
         }
-        
+
         return redirect()->back()->with('success', "Selesai! $count akun baru dibuat, $updated data guru ditautkan.");
     }
 
@@ -276,16 +276,23 @@ class GuruController extends Controller
     }
 
 
-    public function indexGuruRiwayat()
+    public function indexGuruRiwayat(Request $request)
     {
-        $guruId = Auth::user()->id; // Asumsi login sebagai user guru
+        $user = Auth::user(); // Asumsi login sebagai user guru
+
+        $guru = Guru::where('user_id', $user->id)->first();
+
+        // Validasi: Jika data guru belum ditautkan
+        if (!$guru) {
+            return redirect()->back()->with('error', 'Data profil guru tidak ditemukan. Hubungi Admin.');
+        }
 
         // Default tanggal hari ini dan awal bulan
         $startDate = $request->start_date ?? date('Y-m-01');
         $endDate = $request->end_date ?? date('Y-m-d');
 
         // Query Data Absensi
-        $query = Absensi::where('guru_id', $guruId) // Sesuaikan nama tabel/relasi
+        $query = Absensi::where('guru_id', $guru->id) // Sesuaikan nama tabel/relasi
             ->whereBetween('tanggal', [$startDate, $endDate]);
 
         // Data untuk Tabel

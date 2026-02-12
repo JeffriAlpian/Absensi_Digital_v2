@@ -30,7 +30,7 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
     Route::get('/dashboardGuru', [DashboardController::class, 'index'])->name('dashboard.guru.index');
     Route::get('/dashboardGuru/scan', [GuruController::class, 'indexGuruScan'])->name('dashboard.guru.scan.index');
 
-    Route::post('/scan/storeSiswa', [AbsensiController::class, 'storeSiswa'])->name('scan.storeSiswa');
+    Route::post('/scan/storeScan', [AbsensiController::class, 'storeScan'])->name('scan.storeScan');
 
     // Route spesifik menu guru
     Route::get('/dashboardGuru/absen', [GuruController::class, 'indexGuruabsen'])->name('dashboard.guru.absen.index');

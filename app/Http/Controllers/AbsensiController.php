@@ -160,96 +160,211 @@ class AbsensiController extends Controller
     }
 
     // =========================================================================
-    // ABSENSI SISWA (SCAN QR CODE)
+    // ABSENSI SCAN QR CODE (BISA SISWA & GURU)
     // =========================================================================
-    public function storeSiswa(Request $request)
+    public function storeScan(Request $request)
     {
-        // 1. Set Waktu Saat Ini (Carbon Object)
+        // 1. Set Waktu Saat Ini
         $now = Carbon::now('Asia/Jakarta');
 
-        // 2. Validasi
+        // 2. Validasi Input
         $request->validate([
             'qrcode' => 'required',
             'latitude' => 'nullable',
             'longitude' => 'nullable',
         ]);
 
-        $user = Auth::user();
+        $qrCode = $request->qrcode;
+        $lat    = $request->latitude;
+        $long   = $request->longitude;
 
-        if ($user && $user->role == 'guru') {
-            // A. Ambil Data Lokasi Sekolah
-            $profil = ProfilSekolah::first();
-            if (!$profil) {
-                return response()->json(['status' => 'error', 'message' => '❌ Data Profil Sekolah (Koordinat) belum disetting!']);
-            }
+        // ---------------------------------------------------------------------
+        // A. CEK DATA SISWA (Prioritas 1)
+        // ---------------------------------------------------------------------
+        $siswa = Siswa::where('nisn', $qrCode)->first();
 
-            // B. Ambil Input Koordinat dari Guru
-            $latGuru  = $request->latitude;
-            $longGuru = $request->longitude;
-
-            // C. Validasi Jika GPS Browser Mati/Tidak Terkirim
-            if (empty($latGuru) || empty($longGuru)) {
+        if ($siswa) {
+            // Cek Status Aktif
+            if ($siswa->status != 'aktif') {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => '📍 Lokasi tidak terdeteksi. Pastikan GPS aktif dan izinkan akses lokasi di browser.'
+                    "status" => "error",
+                    "message" => "❌ Status siswa (<b>$siswa->nama</b>) tidak aktif."
                 ]);
             }
 
-            // D. Hitung Jarak (Panggil fungsi helper di bawah)
-            $jarakMeter = $this->hitungJarak($latGuru, $longGuru, $profil->latitude, $profil->longitude);
-            $batasRadius = $profil->radius ?? 50; // Default 50 meter jika null
+            // Jalankan Logika Absensi Siswa
+            $result = $this->logikaAbsensiSiswa($siswa, $now);
 
-            // E. Tolak Jika Diluar Radius
-            if ($jarakMeter > $batasRadius) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "❌ Anda berada di luar jangkauan!<br>Jarak: " . round($jarakMeter) . "m (Max: {$batasRadius}m)"
-                ]);
+            // Kirim WA Siswa
+            $waStatus = "";
+            if (!empty($result['pesan_wa']) && !empty($siswa->no_wa)) {
+                // Gunakan Job jika ingin background process, atau direct service
+                // SendWhatsappJob::dispatch($siswa->no_wa, $result['pesan_wa'], 'Absensi Scan'); 
+                $isSent = WhatsappService::send($siswa->no_wa, $result['pesan_wa']);
+                $waStatus = $isSent ? "📲 WA terkirim." : "⚠️ WA gagal.";
             }
-        }
 
-        // 3. Cari Siswa
-        $siswa = Siswa::where('nisn', $request->qrcode)->first();
-
-        if (!$siswa) {
             return response()->json([
-                "status" => "error",
-                "message" => "❌ Data siswa tidak ditemukan!"
-            ], 404);
-        }
-
-        // 4. Cek Status Siswa
-        if ($siswa->status != 'aktif') {
-            return response()->json([
-                "status" => "error",
-                "message" => "❌ Status siswa tidak aktif."
+                "status"    => "success",
+                "message"   => $result['msg'] . "<br><small>$waStatus</small>",
+                "data"      => [
+                    "nama" => $siswa->nama,
+                    "role" => "Siswa",
+                    "jam"  => $now->format('H:i:s'),
+                    "type" => $result['status']
+                ]
             ]);
         }
 
-        // --- PROSES ABSENSI SISWA ---
+        // ---------------------------------------------------------------------
+        // B. CEK DATA GURU (Prioritas 2 - Jika Siswa Tidak Ditemukan)
+        // ---------------------------------------------------------------------
+        // Asumsi: QR Guru berisi NIP atau Kode Unik Guru
+        $guru = Guru::where('nip', $qrCode)
+            ->first();
 
-        // PENTING: Kirim parameter dengan urutan yang benar
-        // Kita hanya butuh $siswa, dan $now. Tanggal/Jam biar diurus di dalam fungsi.
-        $result = $this->logikaAbsensiSiswa($siswa, $now);
+        if ($guru) {
+            // Cek Status Aktif Guru (Opsional)
+            if (isset($guru->status) && $guru->status != 'aktif') {
+                return response()->json(["status" => "error", "message" => "❌ Status Guru tidak aktif."]);
+            }
 
-        // --- KIRIM WA ---
-        $waStatus = "";
-        if (!empty($result['pesan_wa']) && !empty($siswa->no_wa)) {
-            $isSent = WhatsappService::send($siswa->no_wa, $result['pesan_wa']);
-            $waStatus = $isSent ? "📲 WA terkirim." : "⚠️ Gagal kirim WA.";
+            // Validasi Lokasi untuk Guru (Opsional saat Scan QR)
+            // Jika scan QR dilakukan di Kiosk Sekolah, kita anggap lokasinya valid (Sekolah).
+            // Jika Lat/Long kosong (PC tanpa GPS), kita ambil koordinat sekolah default.
+            $profil = ProfilSekolah::first();
+            if (empty($lat) || empty($long)) {
+                $lat  = $profil->latitude;
+                $long = $profil->longitude;
+            }
+
+            // Jalankan Logika Absensi Guru
+            $result = $this->logikaAbsensiGuru($guru, $now, $lat, $long);
+
+            // Kirim WA Guru
+            $waStatus = "";
+            if (!empty($result['pesan_wa']) && !empty($guru->no_wa)) {
+                $isSent = WhatsappService::send($guru->no_wa, $result['pesan_wa']);
+                // Kirim notif ke Waka Kurikulum juga jika perlu (seperti di function storeGuru)
+                if (!empty($profil->wakur_wa)) {
+                    WhatsappService::send($profil->wakur_wa, $result['pesan_wa']);
+                }
+                $waStatus = $isSent ? "📲 WA terkirim." : "⚠️ WA gagal.";
+            }
+
+            return response()->json([
+                "status"    => "success",
+                "message"   => $result['msg'] . "<br><small>$waStatus</small>",
+                "data"      => [
+                    "nama" => $guru->nama,
+                    "role" => "Guru",
+                    "jam"  => $now->format('H:i:s'),
+                    "type" => $result['status']
+                ]
+            ]);
         }
 
-        // Return JSON ke Tampilan Scanner
+        // ---------------------------------------------------------------------
+        // C. DATA TIDAK DITEMUKAN
+        // ---------------------------------------------------------------------
         return response()->json([
-            "status"    => "success",
-            "message"   => $result['msg'] . "<br><small>$waStatus</small>",
-            "data"      => [
-                "nama" => $siswa->nama,
-                "jam"  => $now->format('H:i:s'),
-                "type" => $result['status'] // masuk / pulang
-            ]
-        ]);
+            "status" => "error",
+            "message" => "❌ QR Code tidak dikenali!<br><small>Bukan Siswa maupun Guru.</small>"
+        ], 404);
     }
+
+
+    // =========================================================================
+    // ABSENSI SISWA (SCAN QR CODE)
+    // =========================================================================
+    // public function storeScan(Request $request)
+    // {
+    //     // 1. Set Waktu Saat Ini (Carbon Object)
+    //     $now = Carbon::now('Asia/Jakarta');
+
+    //     // 2. Validasi
+    //     $request->validate([
+    //         'qrcode' => 'required',
+    //         'latitude' => 'nullable',
+    //         'longitude' => 'nullable',
+    //     ]);
+
+    //     $user = Auth::user();
+
+    //     if ($user && $user->role == 'guru') {
+    //         // A. Ambil Data Lokasi Sekolah
+    //         $profil = ProfilSekolah::first();
+    //         if (!$profil) {
+    //             return response()->json(['status' => 'error', 'message' => '❌ Data Profil Sekolah (Koordinat) belum disetting!']);
+    //         }
+
+    //         // B. Ambil Input Koordinat dari Guru
+    //         $latGuru  = $request->latitude;
+    //         $longGuru = $request->longitude;
+
+    //         // C. Validasi Jika GPS Browser Mati/Tidak Terkirim
+    //         if (empty($latGuru) || empty($longGuru)) {
+    //             return response()->json([
+    //                 'status' => 'error',
+    //                 'message' => '📍 Lokasi tidak terdeteksi. Pastikan GPS aktif dan izinkan akses lokasi di browser.'
+    //             ]);
+    //         }
+
+    //         // D. Hitung Jarak (Panggil fungsi helper di bawah)
+    //         $jarakMeter = $this->hitungJarak($latGuru, $longGuru, $profil->latitude, $profil->longitude);
+    //         $batasRadius = $profil->radius ?? 50; // Default 50 meter jika null
+
+    //         // E. Tolak Jika Diluar Radius
+    //         if ($jarakMeter > $batasRadius) {
+    //             return response()->json([
+    //                 'status' => 'error',
+    //                 'message' => "❌ Anda berada di luar jangkauan!<br>Jarak: " . round($jarakMeter) . "m (Max: {$batasRadius}m)"
+    //             ]);
+    //         }
+    //     }
+
+    //     // 3. Cari Siswa
+    //     $siswa = Siswa::where('nisn', $request->qrcode)->first();
+
+    //     if (!$siswa) {
+    //         return response()->json([
+    //             "status" => "error",
+    //             "message" => "❌ Data siswa tidak ditemukan!"
+    //         ], 404);
+    //     }
+
+    //     // 4. Cek Status Siswa
+    //     if ($siswa->status != 'aktif') {
+    //         return response()->json([
+    //             "status" => "error",
+    //             "message" => "❌ Status siswa tidak aktif."
+    //         ]);
+    //     }
+
+    //     // --- PROSES ABSENSI SISWA ---
+
+    //     // PENTING: Kirim parameter dengan urutan yang benar
+    //     // Kita hanya butuh $siswa, dan $now. Tanggal/Jam biar diurus di dalam fungsi.
+    //     $result = $this->logikaAbsensiSiswa($siswa, $now);
+
+    //     // --- KIRIM WA ---
+    //     $waStatus = "";
+    //     if (!empty($result['pesan_wa']) && !empty($siswa->no_wa)) {
+    //         $isSent = WhatsappService::send($siswa->no_wa, $result['pesan_wa']);
+    //         $waStatus = $isSent ? "📲 WA terkirim." : "⚠️ Gagal kirim WA.";
+    //     }
+
+    //     // Return JSON ke Tampilan Scanner
+    //     return response()->json([
+    //         "status"    => "success",
+    //         "message"   => $result['msg'] . "<br><small>$waStatus</small>",
+    //         "data"      => [
+    //             "nama" => $siswa->nama,
+    //             "jam"  => $now->format('H:i:s'),
+    //             "type" => $result['status'] // masuk / pulang
+    //         ]
+    //     ]);
+    // }
 
     // =========================================================================
     // ABSENSI GURU (LOKASI / GPS HP)
