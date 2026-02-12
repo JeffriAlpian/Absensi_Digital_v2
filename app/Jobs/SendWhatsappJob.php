@@ -112,7 +112,7 @@ class SendWhatsappJob implements ShouldQueue
         $text .= "Fitur: {$this->sumber}\n"; // Admin melihat fitur apa yang mentrigger
         $text .= "Tujuan: {$this->no_wa}\n";
         $text .= "Detail: <code>{$detail}</code>\n";
-        $text .= "Sumber: <code>{$detail}</code>";
+        $text .= "Sumber: <code>{$domain}</code>";
 
         try {
             // Gunakan HTTP Client Laravel juga disini biar konsisten
