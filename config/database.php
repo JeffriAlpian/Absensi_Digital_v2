@@ -62,9 +62,10 @@ return [
                 (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
             'dump' => [
-                'dump_binary_path' => 'C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin', // Sesuaikan versi mysql folder Anda
+                'dump_binary_path' => env('DB_DUMP','C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin'), // Sesuaikan versi mysql folder Anda
                 'use_single_transaction',
                 'timeout' => 60 * 5, // 5 menit
+                'add_extra_option' => '--column-statistics=0',
             ],
         ],
 
