@@ -73,7 +73,7 @@
             </form>
 
             <div class="mt-4 text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                <p><strong>Kolom:</strong> NIP/NIK | Nama | Tempat Lahir | Tgl Lahir | Jabatan | No WA</p>
+                <p><strong>Kolom:</strong> NIP | Nama | Jabatan | No WA | Mapel</p>
             </div>
         </div>
     </div>
