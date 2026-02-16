@@ -60,7 +60,7 @@ Build Tool: Vite
 1. **Clone Repository**
 ```bash
 git clone https://github.com/JeffriAlpian/Absensi_Digital_v2.git
-cd sistem-absensi-rfid
+cd Absensi_Digital_v2
 ```
 
 2. **Install Dependencies**
@@ -214,7 +214,7 @@ document.addEventListener('keypress', function(e) {
 
 ### Absensi
 ```
-POST   /api/attendance/tap      # Tap kartu RFID
+POST   /api/rfid/catat      # Tap kartu RFID
 GET    /api/attendance/today    # Data kehadiran hari ini
 GET    /api/attendance/monthly  # Data bulanan
 ```
