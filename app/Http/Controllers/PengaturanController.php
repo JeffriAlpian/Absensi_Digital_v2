@@ -121,7 +121,7 @@ class PengaturanController extends Controller
     {
         try {
             // 1. Baca versi dari file version.txt di root aplikasi
-            $versionFile = base_path('version.txt');
+            $versionFile = config_path('version.txt');
             if (!file_exists($versionFile)) {
                 return redirect()->back()->with('error', '❌ File version.txt tidak ditemukan di root aplikasi.');
             }
