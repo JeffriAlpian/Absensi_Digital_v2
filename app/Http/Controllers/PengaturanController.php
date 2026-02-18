@@ -120,29 +120,42 @@ class PengaturanController extends Controller
     public function systemUpdate(Request $request)
     {
         try {
-            // Dapatkan instance updater via Laravel's service container
+            // 1. Baca versi dari file version.txt di root aplikasi
+            $versionFile = base_path('version.txt');
+            if (!file_exists($versionFile)) {
+                return redirect()->back()->with('error', '❌ File version.txt tidak ditemukan di root aplikasi.');
+            }
+
+            $installedVersion = trim(file_get_contents($versionFile));
+            if (empty($installedVersion)) {
+                return redirect()->back()->with('error', '❌ File version.txt kosong.');
+            }
+
+            // 2. Set konfigurasi dan environment variable untuk memastikan terbaca
+            config(['self-update.version_installed' => $installedVersion]);
+            putenv("SELF_UPDATER_VERSION_INSTALLED={$installedVersion}");
+
+            // 3. Hapus instance lama agar container membuat instance baru dengan konfigurasi terbaru
+            app()->forgetInstance(UpdaterManager::class);
+
+            // 4. Buat instance baru dan jalankan pengecekan
             $updater = app(UpdaterManager::class);
             $source = $updater->source();
 
-            // 1. Cek apakah ada versi baru
             if ($source->isNewVersionAvailable()) {
-
-                // 2. Dapatkan versi terbaru yang tersedia
                 $newVersion = $source->getVersionAvailable();
 
-                // 3. Fetch (unduh) file update berdasarkan versi tersebut
+                // Unduh dan ekstrak
                 $release = $source->fetch($newVersion);
-
-                // 4. Jalankan proses update (ekstrak file, dll)
                 $source->update($release);
 
-                // 5. (Opsional) Jalankan migrasi atau perintah lain setelah update
+                // Jalankan migrasi dan bersihkan cache
                 \Artisan::call('migrate', ['--force' => true]);
                 \Artisan::call('optimize:clear');
 
-                return redirect()->back()->with('success', '✅ Update ke versi ' . $newVersion . ' berhasil!');
+                return redirect()->back()->with('success', "✅ Update ke versi {$newVersion} berhasil!");
             } else {
-                return redirect()->back()->with('success', 'ℹ️ Aplikasi sudah menggunakan versi terbaru.');
+                return redirect()->back()->with('error', "ℹ️ Aplikasi sudah menggunakan versi terbaru ({$installedVersion}).");
             }
 
         } catch (\Exception $e) {
