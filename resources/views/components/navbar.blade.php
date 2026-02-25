@@ -38,6 +38,11 @@
             <i class="fas fa-building w-5 text-center"></i>
             <span>Data Kelas</span>
         </a>
+        <a href="{{ route('wakel.index') }}"
+            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('wakel.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
+            <i class="fas fa-teacher w-5 text-center"></i>
+            <span>Data Wakel</span>
+        </a>
         <a href="{{ route('device_rfid.index') }}"
             class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('device_rfid.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
             <i class="fa-brands fa-nfc-directional w-5 text-center"></i>

@@ -2,25 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guru;
+use App\Models\Absensi;
 // use App\Models\WaliKelas;
-use App\Models\User;
+use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Siswa;
-use App\Models\Absensi;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
-use App\Models\ProfilSekolah;
-
-// Panggil Library Endroid
+use App\Models\User;
+use App\Models\WaliKelas;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Http\Request;
+// Panggil Library Endroid
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class GuruController extends Controller
 {
@@ -97,6 +95,7 @@ class GuruController extends Controller
     public function edit($id)
     {
         $guru = Guru::findOrFail($id);
+
         return view('guru.edit', compact('guru'));
     }
 
@@ -106,7 +105,7 @@ class GuruController extends Controller
         $old_nip = $guru->nip;
         // Validasi Input
         $request->validate([
-            'nip' => 'required|unique:guru,nip,' . $guru->id,
+            'nip' => 'required|unique:guru,nip,'.$guru->id,
             'nama' => 'required',
             'jabatan' => 'required',
         ], [
@@ -123,12 +122,12 @@ class GuruController extends Controller
             // Update juga data usernya
             User::where('username', $old_nip)->update([
                 'username' => $request->nip,
-                'password' => Hash::make($request->password)
+                'password' => Hash::make($request->password),
             ]);
 
             // Hapus QR Code lama
-            if (Storage::exists('public/qr/' . $old_nip . '.png')) {
-                Storage::delete('public/qr/' . $old_nip . '.png');
+            if (Storage::exists('public/qr/'.$old_nip.'.png')) {
+                Storage::delete('public/qr/'.$old_nip.'.png');
             }
             // Generate QR Code baru
             $this->generateQrCode($request->nip);
@@ -189,7 +188,7 @@ class GuruController extends Controller
     {
         // 1. Generate QR Code Object
         $result = Builder::create()
-            ->writer(new PngWriter()) // Menggunakan GD (Aman untuk shared hosting)
+            ->writer(new PngWriter) // Menggunakan GD (Aman untuk shared hosting)
             ->writerOptions([])
             ->data($code)
             ->encoding(new Encoding('UTF-8'))
@@ -200,9 +199,8 @@ class GuruController extends Controller
 
         // 2. Simpan ke Storage (Folder: storage/app/public/qr)
         // getString() mengubah gambar menjadi string binary agar bisa disimpan oleh Storage::put
-        Storage::disk('public')->put('qr/' . $code . '.png', $result->getString());
+        Storage::disk('public')->put('qr/'.$code.'.png', $result->getString());
     }
-
 
     // =======================================================================
     // Dashboard Guru Function
@@ -212,22 +210,21 @@ class GuruController extends Controller
         return view('dashboard.guru.scan');
     }
 
-
     public function indexGuruAbsen()
     {
         $user = Auth::user();
         $data_guru = Guru::where('user_id', $user->id)->first();
+
         return view('dashboard.guru.absen', compact('data_guru'));
     }
-
 
     public function indexGuruProfile()
     {
         $user = Auth::user();
         $data_guru = Guru::where('user_id', $user->id)->first();
+
         return view('dashboard.guru.profil', compact('data_guru', 'user'));
     }
-
 
     public function updateGuruProfile(Request $request)
     {
@@ -239,13 +236,12 @@ class GuruController extends Controller
             'username' => 'required',
         ]);
 
-        if ($user->update(['username' => $request->username,]) || $guru->update(['nama' => $request->name])) {
+        if ($user->update(['username' => $request->username]) || $guru->update(['nama' => $request->name])) {
             return back()->with('success', 'Biodata berhasil diperbarui.');
         } else {
             return back()->with('error', 'Biodata gagal diperbarui.');
         }
     }
-
 
     public function updateGuruPassword(Request $request)
     {
@@ -258,24 +254,22 @@ class GuruController extends Controller
         /** @var User $user */
 
         // Cek apakah password lama benar
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Password saat ini salah!']);
         }
 
         // Update Password
         $user->update([
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
         ]);
 
         return back()->with('success', 'Password berhasil diganti!');
     }
 
-
     public function indexGuruSettings()
     {
         return view('dashboard.guru.setting');
     }
-
 
     public function indexGuruRiwayat(Request $request)
     {
@@ -284,7 +278,7 @@ class GuruController extends Controller
         $guru = Guru::where('user_id', $user->id)->first();
 
         // Validasi: Jika data guru belum ditautkan
-        if (!$guru) {
+        if (! $guru) {
             return redirect()->back()->with('error', 'Data profil guru tidak ditemukan. Hubungi Admin.');
         }
 
@@ -313,39 +307,72 @@ class GuruController extends Controller
 
     public function indexGuruManual(Request $request)
     {
-        // 1. Ambil Input Filter
-        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        // 1. Ambil data user yang sedang login
+        $user = Auth::user();
 
-        $kelasId = $request->input('kelas_id'); // Sesuaikan nama input select di view
-        $statusFilter = $request->input('status'); // Input baru: 'belum_absen', 'H', 'S', 'I', 'A', atau null (semua)
+        // 2. Cari data Guru yang cocok dengan user login.
+        // GANTI 'email' DENGAN KOLOM PENGHUBUNG YANG BENAR DI DATABASE ANDA
+        // Misalnya jika login pakai NIP: Guru::where('nip', $userLogin->username)->first();
+        $guru = Guru::where('user_id', $user->id)->first();
 
-        $listKelas = Kelas::orderBy('nama_kelas', 'asc')->get();
-        $dataList = [];
-
-        $query = Siswa::query()->where('status', 'aktif'); // Pastikan hanya siswa aktif
-
-        // Filter Kelas
-        if ($kelasId) {
-            $query->where('id_kelas', $kelasId);
+        // Jika user yang login ternyata tidak ada di tabel Guru
+        if (! $guru) {
+            return view('dashboard.guru.manual', [
+                'isWaliKelas' => false,
+                'pesan' => 'Akses Ditolak: Akun Anda tidak terhubung dengan data Guru manapun.',
+            ]);
         }
 
+        // 3. Jika ketemu, ambil ID Guru-nya
+        $guruId = $guru->id;
 
-        // 3. Eager Load Absensi (Agar data absen tampil di list)
+        // 4. Cek apakah guru ini terdaftar sebagai Wali Kelas
+        $waliKelas = WaliKelas::where('guru_id', $guruId)->first();
+
+        // JIKA BUKAN WALI KELAS
+        if (! $waliKelas) {
+            return view('dashboard.guru.manual', [
+                'isWaliKelas' => false,
+                'pesan' => 'Akses Ditolak: Anda terdaftar sebagai Guru, tetapi bukan Wali Kelas.',
+            ]);
+        }
+
+        // ==========================================
+        // JIKA DIA WALI KELAS, JALANKAN LOGIKA UTAMA
+        // ==========================================
+
+        // Paksa kelasId menggunakan kelas yang dia pegang (abaikan input filter kelas dari luar)
+        $kelasId = $waliKelas->kelas_id;
+
+        // Ambil Input Filter
+        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $statusFilter = $request->input('status');
+
+        // Karena dia cuma mengurus 1 kelas, listKelas kita isi dengan kelas dia saja
+        // (Bisa dipakai kalau di view masih butuh variabel $listKelas agar tidak error)
+        $listKelas = Kelas::where('id', $kelasId)->get();
+
+        $dataList = [];
+
+        // Pastikan hanya siswa aktif dan HANYA anak-anak dari kelasnya
+        $query = Siswa::query()
+            ->where('status', 'aktif')
+            ->where('id_kelas', $kelasId);
+
+        // Eager Load Absensi
         $query->with([
             'absensi' => function ($q) use ($tanggal) {
                 $q->whereDate('tanggal', $tanggal);
-            }
+            },
         ]);
 
-        // 4. LOGIKA FILTER STATUS (Inti Pertanyaan Anda)
+        // LOGIKA FILTER STATUS
         if ($statusFilter) {
             if ($statusFilter == 'belum_absen') {
-                // A. Tampilkan yang BELUM ada data absen hari ini
                 $query->whereDoesntHave('absensi', function ($q) use ($tanggal) {
                     $q->whereDate('tanggal', $tanggal);
                 });
             } else {
-                // B. Tampilkan berdasarkan status spesifik (H, S, I, A)
                 $query->whereHas('absensi', function ($q) use ($tanggal, $statusFilter) {
                     $q->whereDate('tanggal', $tanggal)
                         ->where('status', $statusFilter);
@@ -353,17 +380,15 @@ class GuruController extends Controller
             }
         }
 
-        // 5. Eksekusi Query
-        // Urutkan nama abjad agar rapi
+        // Eksekusi Query
         $dataList = $query->orderBy('nama', 'asc')->get();
 
         return view('dashboard.guru.manual', compact(
             'tanggal',
             'kelasId',
-            'statusFilter', 
+            'statusFilter',
             'listKelas',
             'dataList'
-        ));
+        ))->with('isWaliKelas', true); // Tambahkan flag bahwa dia valid wali kelas
     }
-
 }

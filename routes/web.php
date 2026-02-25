@@ -5,6 +5,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\KartuController;
+use App\Http\Controllers\WakelController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\DeviceRfidController;
 use App\Http\Controllers\CetakKartuController;
@@ -124,4 +125,13 @@ Route::prefix('kartu')->name('kartu.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/store', [KartuController::class, 'store'])->name('store');
 
     Route::delete('/{id}', [KartuController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('wakel')->name('wakel.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/', [WakelController::class, 'index'])->name('index');
+    Route::get('/create', [WakelController::class, 'create'])->name('create');
+    Route::post('/store', [WakelController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [WakelController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [WakelController::class, 'update'])->name('update');
+    Route::delete('/{id}', [WakelController::class, 'destroy'])->name('destroy');
 });
