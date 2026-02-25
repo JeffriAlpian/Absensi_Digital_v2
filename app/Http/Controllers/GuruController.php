@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-
+use Carbon\Carbon;
+use App\Models\ProfilSekolah;
 
 // Panggil Library Endroid
 use Endroid\QrCode\Builder\Builder;
@@ -153,7 +154,7 @@ class GuruController extends Controller
                 ['username' => $g->nip],
                 [
                     'password' => Hash::make($g->nip),
-                    'role'     => 'guru',
+                    'role' => 'guru',
                     // 'name'  => $g->nama // Opsional: jika ingin nama di user ikut nama guru
                 ]
             );
@@ -303,10 +304,66 @@ class GuruController extends Controller
         $summary = [
             'hadir' => (clone $query)->where('status', 'H')->count(),
             'telat' => (clone $query)->where('keterangan', 'Terlambat')->count(),
-            'izin'  => (clone $query)->whereIn('status', ['I', 'S'])->count(),
+            'izin' => (clone $query)->whereIn('status', ['I', 'S'])->count(),
             'alpha' => (clone $query)->where('status', 'A')->count(),
         ];
 
         return view('dashboard.guru.riwayat', compact('riwayat', 'summary'));
     }
+
+    public function indexGuruManual(Request $request)
+    {
+        // 1. Ambil Input Filter
+        $tanggal = $request->input('tanggal', date('Y-m-d'));
+
+        $kelasId = $request->input('kelas_id'); // Sesuaikan nama input select di view
+        $statusFilter = $request->input('status'); // Input baru: 'belum_absen', 'H', 'S', 'I', 'A', atau null (semua)
+
+        $listKelas = Kelas::orderBy('nama_kelas', 'asc')->get();
+        $dataList = [];
+
+        $query = Siswa::query()->where('status', 'aktif'); // Pastikan hanya siswa aktif
+
+        // Filter Kelas
+        if ($kelasId) {
+            $query->where('id_kelas', $kelasId);
+        }
+
+
+        // 3. Eager Load Absensi (Agar data absen tampil di list)
+        $query->with([
+            'absensi' => function ($q) use ($tanggal) {
+                $q->whereDate('tanggal', $tanggal);
+            }
+        ]);
+
+        // 4. LOGIKA FILTER STATUS (Inti Pertanyaan Anda)
+        if ($statusFilter) {
+            if ($statusFilter == 'belum_absen') {
+                // A. Tampilkan yang BELUM ada data absen hari ini
+                $query->whereDoesntHave('absensi', function ($q) use ($tanggal) {
+                    $q->whereDate('tanggal', $tanggal);
+                });
+            } else {
+                // B. Tampilkan berdasarkan status spesifik (H, S, I, A)
+                $query->whereHas('absensi', function ($q) use ($tanggal, $statusFilter) {
+                    $q->whereDate('tanggal', $tanggal)
+                        ->where('status', $statusFilter);
+                });
+            }
+        }
+
+        // 5. Eksekusi Query
+        // Urutkan nama abjad agar rapi
+        $dataList = $query->orderBy('nama', 'asc')->get();
+
+        return view('dashboard.guru.manual', compact(
+            'tanggal',
+            'kelasId',
+            'statusFilter', 
+            'listKelas',
+            'dataList'
+        ));
+    }
+
 }

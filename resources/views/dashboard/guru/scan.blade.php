@@ -228,7 +228,7 @@
             if (beep) beep.play().catch(() => {});
 
             // --- FETCH REQUEST ---
-            fetch("{{ route('scan.storeSiswa') }}", { // Pastikan nama route benar
+            fetch("{{ route('scan.storeScan') }}", { // Pastikan nama route benar
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

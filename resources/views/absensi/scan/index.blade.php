@@ -122,11 +122,41 @@
     </style>
 
     <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         let lastScannedCode = null;
         let scanCooldown = false;
 
-        // --- FUNGSI UI ---
+        // Variabel untuk menyimpan lokasi
+        let currentLocation = {
+            latitude: null,
+            longitude: null
+        };
 
+        // --- 1. AMBIL LOKASI SAAT HALAMAN DIMUAT ---
+        document.addEventListener("DOMContentLoaded", function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        currentLocation.latitude = position.coords.latitude;
+                        currentLocation.longitude = position.coords.longitude;
+                        console.log("📍 Lokasi ditemukan:", currentLocation);
+
+                        // Opsional: Update badge status visual jika perlu
+                        // document.getElementById('scan-status-badge').innerHTML = 'Ready + GPS';
+                    },
+                    function (error) {
+                        console.warn("⚠️ Gagal mengambil lokasi:", error.message);
+                    }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000
+                }
+                );
+            } else {
+                console.error("Browser tidak mendukung Geolocation.");
+            }
+        });
+
+        // --- 2. FUNGSI UI (TIDAK BERUBAH BANYAK) ---
         function updateStatus(status) {
             const badge = document.getElementById('scan-status-badge');
             if (status === 'scanning') {
@@ -150,45 +180,42 @@
                 minute: '2-digit'
             });
 
-            // Tentukan style berdasarkan tipe
             const isSuccess = type === 'success';
             const borderColor = isSuccess ? 'border-l-green-500' : 'border-l-red-500';
             const iconColor = isSuccess ? 'text-green-500 bg-green-50' : 'text-red-500 bg-red-50';
             const iconClass = isSuccess ? 'fa-circle-check' : 'fa-circle-xmark';
 
-            // HTML Template String
+            // Sanitasi pesan agar tag <br> tetap jalan tapi script tidak
+            // (Sederhana: kita percaya output controller aman karena kita yang buat)
+
             const cardHTML = `
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${borderColor} flex items-start gap-4 transition-all duration-500 transform translate-y-0 opacity-100">
-                <div class="flex-shrink-0">
-                    <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center">
-                        <i class="fa-solid ${iconClass} text-xl"></i>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${borderColor} flex items-start gap-4 transition-all duration-500 animate-fade-in-down">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center">
+                            <i class="fa-solid ${iconClass} text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-bold text-gray-800 break-words leading-snug">
+                            ${message} 
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                            <i class="fa-regular fa-clock"></i> ${time}
+                        </p>
                     </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-gray-800 break-words leading-snug">
-                        ${message} </p>
-                    <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                        <i class="fa-regular fa-clock"></i> ${time}
-                    </p>
-                </div>
-            </div>
-        `;
+            `;
 
-            // Insert element baru di paling atas
             const wrapper = document.createElement('div');
             wrapper.innerHTML = cardHTML;
-            const newCard = wrapper.firstElementChild;
+            container.prepend(wrapper.firstElementChild);
 
-            container.prepend(newCard);
-
-            // Batasi histori max 5 item agar tidak kepanjangan
             if (container.children.length > 5) {
                 container.lastElementChild.remove();
             }
         }
 
-        // --- LOGIKA SCANNER ---
-
+        // --- 3. LOGIKA SCANNER ---
         function onScanSuccess(qrMessage) {
             if (scanCooldown || qrMessage === lastScannedCode) return;
 
@@ -197,45 +224,50 @@
             updateStatus('scanning');
 
             // Play Beep
-            document.getElementById("beepSound").play().catch(() => {});
+            const beep = document.getElementById("beepSound");
+            if (beep) beep.play().catch(() => { });
 
-            // Fetch ke Laravel
-            fetch("{{ route('scan.storeScan') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-
-                    },
-                    body: JSON.stringify({
-                        qrcode: qrMessage
-                    })
+            // --- FETCH REQUEST ---
+            fetch("{{ route('scan.storeScan') }}", { // Pastikan nama route benar
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken // Header Token Wajib Laravel
+                },
+                body: JSON.stringify({
+                    qrcode: qrMessage,
+                    latitude: currentLocation.latitude, // Kirim Lat
+                    longitude: currentLocation.longitude // Kirim Long
                 })
-                .then(response => response.json())
-                .then(data => {
+            })
+                .then(response => {
+                    // Cek jika response bukan OK (misal 404/500), tetap parse JSON errornya
+                    return response.json().then(data => ({
+                        status: response.status,
+                        body: data
+                    }));
+                })
+                .then(({
+                    status,
+                    body
+                }) => {
                     updateStatus('ready');
 
-                    // Logika warna card berdasarkan response status dari Controller
-                    // Asumsi controller return { status: 'success' | 'error', message: '...' }
-                    const type = (data.status === 'error') ? 'error' : 'success';
+                    // Logika Status: Jika success dari JSON body ATAU status code 200
+                    const isSuccess = (body.status === 'success');
+                    const type = isSuccess ? 'success' : 'error';
 
-                    // Kita strip tag HTML jika controller mengirim HTML murni, agar masuk ke desain Tailwind kita
-                    // Atau biarkan jika Anda yakin output controller aman.
-                    // Disini saya pakai temp div untuk ambil text-nya saja agar desain tidak rusak
-                    let tempDiv = document.createElement("div");
-                    tempDiv.innerHTML = data.message;
-                    let cleanMessage = tempDiv.textContent || tempDiv.innerText || data.message;
+                    addResultCard(body.message, type);
 
-                    addResultCard(cleanMessage, type);
-
-                    // Cooldown 2.5 detik
+                    // Cooldown
                     setTimeout(() => {
                         scanCooldown = false;
-                        lastScannedCode = null;
+                        lastScannedCode = null; // Reset agar bisa scan kode yang sama lagi
                     }, 2500);
                 })
                 .catch(error => {
-                    updateStatus('ready');
                     console.error(error);
+                    updateStatus('ready');
                     addResultCard("Gagal koneksi ke server.", 'error');
                     setTimeout(() => {
                         scanCooldown = false;
@@ -243,40 +275,30 @@
                 });
         }
 
-        // --- INISIALISASI ---
-
-        const html5QrCode = new Html5Qrcode("reader", {
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-            verbose: false
-        });
-
+        // --- 4. INISIALISASI KAMERA ---
+        const html5QrCode = new Html5Qrcode("reader");
         const config = {
-            
-            fps: 15,
+            fps: 10,
             qrbox: {
                 width: 250,
                 height: 250
             },
-            aspectRatio: 1.0,
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
-            }
+            aspectRatio: 1.0
         };
 
         html5QrCode.start({
-                facingMode: "environment"
-            },
+            facingMode: "environment"
+        },
             config,
             onScanSuccess
         ).catch(err => {
-            // Tampilkan error cantik di dalam kotak kamera jika gagal
             document.getElementById("reader").innerHTML = `
-            <div class="h-full flex flex-col items-center justify-center text-white p-6 text-center">
-                <i class="fa-solid fa-camera-slash text-4xl mb-3 text-red-500"></i>
-                <p class="font-bold">Kamera Gagal Dimuat</p>
-                <p class="text-xs text-gray-400 mt-1">Pastikan izin kamera diberikan di browser Anda.</p>
-            </div>
-        `;
+                <div class="h-full flex flex-col items-center justify-center text-white p-6 text-center">
+                    <i class="fa-solid fa-camera-slash text-4xl mb-3 text-red-500"></i>
+                    <p class="font-bold">Kamera Gagal</p>
+                    <p class="text-xs text-gray-400">Pastikan izin kamera aktif & HTTPS digunakan.</p>
+                </div>
+            `;
         });
     </script>
 @endsection

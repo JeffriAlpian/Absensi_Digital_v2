@@ -65,7 +65,7 @@
                 </div>
                 <span class="text-[10px] text-gray-500">Scan</span>
             </a>
-            <a href="#" class="flex flex-col items-center gap-2">
+            <a href="{{route('dashboard.guru.manual.index')}}" class="flex flex-col items-center gap-2">
                 <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500">
                     <i class="fa-solid fa-file-lines"></i>
                 </div>

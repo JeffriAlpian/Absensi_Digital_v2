@@ -42,6 +42,7 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
     Route::put('/dashboardGuru/profil/update/password', [GuruController::class, 'updateGuruPassword'])->name('dashboard.guru.password.update');
 
     Route::get('/dashboardGuru/riwayat', [GuruController::class, 'indexGururiwayat'])->name('dashboard.guru.riwayat.index');
+    Route::get('/dashboardGuru/manual', [GuruController::class, 'indexGuruManual'])->name('dashboard.guru.manual.index');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
