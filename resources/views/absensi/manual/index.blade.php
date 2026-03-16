@@ -149,7 +149,7 @@
                                     @csrf
                                     {{-- Kirim Kategori ke Controller --}}
                                     <input type="hidden" name="kategori" value="{{ $kategori }}">
-                                    <input type="hidden" name="id_peserta" value="{{ $item->id }}">
+                                    <input type="hidden" name="absen_id" value="{{ $item->id }}">
                                     {{-- ID Universal --}}
                                     <input type="hidden" name="tanggal" value="{{ $tanggal }}">
                                     <input type="hidden" name="kelas_filter" value="{{ $kelasId }}">

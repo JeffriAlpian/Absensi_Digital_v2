@@ -38,7 +38,7 @@ class SendWhatsappJob implements ShouldQueue
     public function handle()
     {
         // --- LOGIKA ANTI-BANNED ---
-        sleep(rand(5, 10));
+        sleep(rand(12, 20));
 
         // --- AMBIL CONFIG SEKOLAH ---
         $profil = ProfilSekolah::first();

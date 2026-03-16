@@ -22,12 +22,12 @@
 // =============================
 // 🔹 PIN KONFIGURASI
 // =============================
-#define SS_RFID D4
-#define RST_RFID D3
-#define SS_SD D8
-#define SDA_PIN D2
-#define SCL_PIN D1
-#define BUZZER_PIN D0
+#define SS_RFID D8    // Pin SDA/CS RFID pindah ke D8 (Wajib tambah resistor 10k dari D8 ke GND di hardware)
+#define RST_RFID D4   // Pin RST RFID pindah ke D4 (Aman)
+#define SS_SD D0      // Pin CS SD Card pindah ke D0 (Aman, tidak mengganggu booting)
+#define SDA_PIN D2    // Tetap (I2C)
+#define SCL_PIN D1    // Tetap (I2C)
+#define BUZZER_PIN D3 // Pin Buzzer pindah ke D3 (Buzzer akan bunyi "tit" pelan saat baru nyala, ini normal)
 
 // =============================
 // 🔹 KONFIGURASI ACCESS POINT

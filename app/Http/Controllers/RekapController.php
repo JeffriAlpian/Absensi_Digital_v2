@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Absensi;
+use App\Models\Guru;
+use App\Models\HariLibur;
+use App\Models\Kelas;
+use App\Models\ProfilSekolah;
+use App\Models\Siswa;
+use App\Models\WaliKelas;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use App\Models\ProfilSekolah;
-use App\Models\HariLibur;
-use App\Models\Guru;
-use App\Models\Siswa;
-use App\Models\Kelas;
-use App\Models\Absensi;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class RekapController extends Controller
 {
@@ -39,10 +40,10 @@ class RekapController extends Controller
 
         // Statistik Guru
         $statsGuru = [
-            'total'     => $rekapGuru->count(),
-            'hadir'     => $rekapGuru->filter(fn($g) => $g->absensi->first() && $g->absensi->first()->status == 'H')->count(),
-            'terlambat' => $rekapGuru->filter(fn($g) => $g->absensi->first() && str_contains($g->absensi->first()->keterangan, 'Terlambat'))->count(),
-            'alpha'     => $rekapGuru->filter(fn($g) => !$g->absensi->first())->count(),
+            'total' => $rekapGuru->count(),
+            'hadir' => $rekapGuru->filter(fn ($g) => $g->absensi->first() && $g->absensi->first()->status == 'H')->count(),
+            'terlambat' => $rekapGuru->filter(fn ($g) => $g->absensi->first() && str_contains($g->absensi->first()->keterangan, 'Terlambat'))->count(),
+            'alpha' => $rekapGuru->filter(fn ($g) => ! $g->absensi->first())->count(),
         ];
 
         // ==========================================
@@ -64,11 +65,11 @@ class RekapController extends Controller
         // Statistik Siswa (Berdasarkan data yang ditarik/difilter)
         $statsSiswa = [
             'total' => $rekapSiswa->count(),
-            'hadir' => $rekapSiswa->filter(fn($s) => $s->absensi->first() && $s->absensi->first()->status == 'H')->count(),
-            'sakit' => $rekapSiswa->filter(fn($s) => $s->absensi->first() && $s->absensi->first()->status == 'S')->count(),
-            'izin'  => $rekapSiswa->filter(fn($s) => $s->absensi->first() && $s->absensi->first()->status == 'I')->count(),
-            'alpha' => $rekapSiswa->filter(fn($s) => $s->absensi->first() && $s->absensi->first()->status == 'A')->count(),
-            'belum' => $rekapSiswa->filter(fn($s) => !$s->absensi->first())->count(), // Belum ada data sama sekali
+            'hadir' => $rekapSiswa->filter(fn ($s) => $s->absensi->first() && $s->absensi->first()->status == 'H')->count(),
+            'sakit' => $rekapSiswa->filter(fn ($s) => $s->absensi->first() && $s->absensi->first()->status == 'S')->count(),
+            'izin' => $rekapSiswa->filter(fn ($s) => $s->absensi->first() && $s->absensi->first()->status == 'I')->count(),
+            'alpha' => $rekapSiswa->filter(fn ($s) => $s->absensi->first() && $s->absensi->first()->status == 'A')->count(),
+            'belum' => $rekapSiswa->filter(fn ($s) => ! $s->absensi->first())->count(), // Belum ada data sama sekali
         ];
 
         return view('absensi.rekap.harian', compact(
@@ -89,6 +90,7 @@ class RekapController extends Controller
     public function rekapBulanan(Request $request)
     {
         $data = $this->getDataBulanan($request);
+
         return view('absensi.rekap.bulanan', $data);
     }
 
@@ -100,12 +102,12 @@ class RekapController extends Controller
         $profil = ProfilSekolah::first();
         $data = $this->getDataBulanan($request); // Pastikan ini me-return data yang valid
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         // --- A. SETUP HEADER ---
         $bulanStr = Carbon::createFromDate(null, $data['bulan'])->translatedFormat('F');
-        $sheet->setCellValue('A1', 'REKAP ABSENSI ' . strtoupper($data['kategori']));
+        $sheet->setCellValue('A1', 'REKAP ABSENSI '.strtoupper($data['kategori']));
         $sheet->setCellValue('A2', "Bulan: $bulanStr {$data['tahun']}");
 
         // Styling Judul
@@ -131,26 +133,26 @@ class RekapController extends Controller
             $colEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
 
             // 1. Baris 4: Tanggal (Merged 2 Kolom)
-            $sheet->setCellValue($colStart . '4', $d);
-            $sheet->mergeCells($colStart . '4:' . $colEnd . '4');
+            $sheet->setCellValue($colStart.'4', $d);
+            $sheet->mergeCells($colStart.'4:'.$colEnd.'4');
 
             // 2. Baris 5: Hari (Merged 2 Kolom)
-            $sheet->setCellValue($colStart . '5', substr($date->translatedFormat('D'), 0, 1)); // S, M, R...
-            $sheet->mergeCells($colStart . '5:' . $colEnd . '5');
+            $sheet->setCellValue($colStart.'5', substr($date->translatedFormat('D'), 0, 1)); // S, M, R...
+            $sheet->mergeCells($colStart.'5:'.$colEnd.'5');
 
             // 3. Baris 6: Keterangan (M & P)
-            $sheet->setCellValue($colStart . '6', 'Masuk'); // Masuk
-            $sheet->setCellValue($colEnd . '6', 'Pulang');  // Pulang
+            $sheet->setCellValue($colStart.'6', 'Masuk'); // Masuk
+            $sheet->setCellValue($colEnd.'6', 'Pulang');  // Pulang
 
             // Styling Header Hari Libur / Minggu
             $isLibur = $date->dayOfWeek == $profil->hari_libur_mingguan || in_array($date->format('Y-m-d'), $data['libur']);
 
             if ($isLibur) {
                 // Warnai header dan nanti kolom ke bawah merah muda/kuning
-                $sheet->getStyle($colStart . '4:' . $colEnd . '100')
+                $sheet->getStyle($colStart.'4:'.$colEnd.'100')
                     ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('YYFFCCCC');
                 // Font Tanggal Merah
-                $sheet->getStyle($colStart . '4')->getFont()->getColor()->setARGB('FFFF0000');
+                $sheet->getStyle($colStart.'4')->getFont()->getColor()->setARGB('FFFF0000');
             }
 
             // Geser index 2 langkah (karena pakai 2 kolom)
@@ -161,22 +163,22 @@ class RekapController extends Controller
         $rekapHeaders = ['H', 'S', 'I', 'A'];
         foreach ($rekapHeaders as $rh) {
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->setCellValue($colLetter . '4', $rh);
-            $sheet->mergeCells($colLetter . '4:' . $colLetter . '6'); // Merge sampai baris 6
+            $sheet->setCellValue($colLetter.'4', $rh);
+            $sheet->mergeCells($colLetter.'4:'.$colLetter.'6'); // Merge sampai baris 6
             $colIndex++;
         }
 
         // Merge Judul Utama agar rata tengah sepanjang tabel
         $lastColStr = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex - 1);
-        $sheet->mergeCells('A1:' . $lastColStr . '1');
-        $sheet->mergeCells('A2:' . $lastColStr . '2');
+        $sheet->mergeCells('A1:'.$lastColStr.'1');
+        $sheet->mergeCells('A2:'.$lastColStr.'2');
 
         // --- B. ISI DATA ---
         $row = 7; // Data mulai baris ke-7
 
         foreach ($data['users'] as $index => $user) {
-            $sheet->setCellValue('A' . $row, $index + 1);
-            $sheet->setCellValue('B' . $row, $user->nama);
+            $sheet->setCellValue('A'.$row, $index + 1);
+            $sheet->setCellValue('B'.$row, $user->nama);
 
             // Reset Counter Statistik
             $h = 0;
@@ -198,8 +200,8 @@ class RekapController extends Controller
 
                 // LOGIKA PENGISIAN CELL
                 if ($isLibur) {
-                    $sheet->setCellValue($colMasuk . $row, 'L');
-                    $sheet->setCellValue($colPulang . $row, 'L');
+                    $sheet->setCellValue($colMasuk.$row, 'L');
+                    $sheet->setCellValue($colPulang.$row, 'L');
                 } elseif ($absen) {
                     $status = $absen->status;
 
@@ -209,17 +211,23 @@ class RekapController extends Controller
                         $jamMasuk = $absen->jam_masuk ? Carbon::parse($absen->jam_masuk)->format('H:i') : '-';
                         $jamPulang = $absen->jam_pulang ? Carbon::parse($absen->jam_pulang)->format('H:i') : '-';
 
-                        $sheet->setCellValue($colMasuk . $row, $jamMasuk);
-                        $sheet->setCellValue($colPulang . $row, $jamPulang);
+                        $sheet->setCellValue($colMasuk.$row, $jamMasuk);
+                        $sheet->setCellValue($colPulang.$row, $jamPulang);
                         $h++;
                     } else {
                         // Jika S, I, A -> Tampilkan Kode Status di kedua kolom
-                        $sheet->setCellValue($colMasuk . $row, $status);
-                        $sheet->setCellValue($colPulang . $row, $status);
+                        $sheet->setCellValue($colMasuk.$row, $status);
+                        $sheet->setCellValue($colPulang.$row, $status);
 
-                        if ($status == 'S') $s++;
-                        if ($status == 'I') $i++;
-                        if ($status == 'A') $a++;
+                        if ($status == 'S') {
+                            $s++;
+                        }
+                        if ($status == 'I') {
+                            $i++;
+                        }
+                        if ($status == 'A') {
+                            $a++;
+                        }
                     }
 
                     // Warna Cell Berdasarkan Status (Opsional, biar cantik)
@@ -230,14 +238,14 @@ class RekapController extends Controller
                         'A' => 'FFFFCCCC', // Merah
                         default => 'FFFFFFFF'
                     };
-                    $sheet->getStyle($colMasuk . $row . ':' . $colPulang . $row)
+                    $sheet->getStyle($colMasuk.$row.':'.$colPulang.$row)
                         ->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
                 } else {
                     // Tidak ada data & Bukan Libur = Alpha
                     if ($tglStr <= date('Y-m-d')) {
-                        $sheet->setCellValue($colMasuk . $row, 'A');
-                        $sheet->setCellValue($colPulang . $row, 'A');
-                        $sheet->getStyle($colMasuk . $row . ':' . $colPulang . $row)
+                        $sheet->setCellValue($colMasuk.$row, 'A');
+                        $sheet->setCellValue($colPulang.$row, 'A');
+                        $sheet->getStyle($colMasuk.$row.':'.$colPulang.$row)
                             ->getFont()->getColor()->setARGB('FFFF0000'); // Text Merah
                         $a++;
                     }
@@ -247,10 +255,10 @@ class RekapController extends Controller
             }
 
             // Isi Kolom Rekap (H, S, I, A)
-            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $h);
-            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $s);
-            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $i);
-            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++) . $row, $a);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++).$row, $h);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++).$row, $s);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++).$row, $i);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex++).$row, $a);
 
             $row++;
         }
@@ -269,10 +277,10 @@ class RekapController extends Controller
         ];
 
         // Terapkan border & align center ke seluruh tabel
-        $sheet->getStyle('A4:' . $lastColStr . ($row - 1))->applyFromArray($styleArray);
+        $sheet->getStyle('A4:'.$lastColStr.($row - 1))->applyFromArray($styleArray);
 
         // Nama Rata Kiri
-        $sheet->getStyle('B7:B' . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle('B7:B'.($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
         // Auto Size Kolom
         $sheet->getColumnDimension('B')->setAutoSize(true);
@@ -284,10 +292,10 @@ class RekapController extends Controller
 
         // --- D. OUTPUT FILE ---
         $writer = new Xlsx($spreadsheet);
-        $filename = 'Rekap_Absensi_Detail_' . $data['kategori'] . '_' . $bulanStr . '_' . $data['tahun'] . '.xlsx';
+        $filename = 'Rekap_Absensi_Detail_'.$data['kategori'].'_'.$bulanStr.'_'.$data['tahun'].'.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . urlencode($filename) . '"');
+        header('Content-Disposition: attachment; filename="'.urlencode($filename).'"');
         $writer->save('php://output');
         exit;
     }
@@ -348,11 +356,7 @@ class RekapController extends Controller
         // Cari Wali Kelas (Jika mode siswa & ada filter kelas)
         $waliKelas = null;
         if ($kategori == 'siswa' && $kelasId) {
-            // Asumsi ada relasi kelas->wali_kelas->guru
-            $kelasObj = Kelas::with('wali_kelas.guru')->find($kelasId);
-            if ($kelasObj && $kelasObj->wali_kelas) {
-                $waliKelas = $kelasObj->wali_kelas->guru; // Object Guru
-            }
+            $waliKelas = WaliKelas::where('kelas_id', $kelasId)->first();
         }
 
         return [

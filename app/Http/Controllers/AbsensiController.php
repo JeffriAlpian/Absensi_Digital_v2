@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
-use App\Services\WhatsappService;
-
-// Import Model
-use App\Models\Kelas;
-use App\Models\Siswa;
-use App\Models\Guru;
 use App\Models\Absensi;
+use App\Models\Guru;
+use App\Models\Kelas;
 use App\Models\ProfilSekolah;
+// Import Model
+use App\Models\Siswa;
+use App\Services\WhatsappService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AbsensiController extends Controller
 {
-
     public function scanIndex()
     {
         return view('absensi.scan.index');
@@ -49,7 +47,7 @@ class AbsensiController extends Controller
         $query->with([
             'absensi' => function ($q) use ($tanggal) {
                 $q->whereDate('tanggal', $tanggal);
-            }
+            },
         ]);
 
         // 4. LOGIKA FILTER STATUS (Inti Pertanyaan Anda)
@@ -89,46 +87,82 @@ class AbsensiController extends Controller
     public function storeManual(Request $request)
     {
         $request->validate([
-            'siswa_id' => 'required',
+            'absen_id' => 'required',
             'status' => 'required',
             'tanggal' => 'required|date',
+            'kategori' => 'required',
         ]);
 
-        $siswa = Siswa::findOrFail($request->siswa_id);
+        if ($request->kategori == 'siswa') {
+            $siswa = Siswa::findOrFail($request->absen_id);
 
-        // Cek apakah data sudah ada (Update) atau belum (Create)
-        $absensi = Absensi::updateOrCreate(
-            [
-                'siswa_id' => $request->siswa_id,
-                'tanggal' => $request->tanggal
-            ],
-            [
-                'status' => $request->status,
-                'keterangan' => $request->keterangan
-            ]
-        );
+            // Cek apakah data sudah ada (Update) atau belum (Create)
+            $absensi = Absensi::updateOrCreate(
+                [
+                    'siswa_id' => $request->absen_id,
+                    'tanggal' => $request->tanggal,
+                ],
+                [
+                    'status' => $request->status,
+                    'keterangan' => $request->keterangan,
+                ]
+            );
 
-        // Pesan WA
-        $aksi = $absensi->wasRecentlyCreated ? "ditambahkan" : "diubah";
-        $pesan = "Info Absen:\nAnanda *{$siswa->nama}* ({$siswa->nisn})\npada tanggal {$request->tanggal}\ntelah {$aksi} statusnya menjadi: *{$request->status}*.\nKeterangan: {$request->keterangan}.\nTerima kasih.\n\nNote: Tidak perlu membalas pesan ini.\n\n> SMK Darul A'mal";
+            // Pesan WA
+            $aksi = $absensi->wasRecentlyCreated ? 'ditambahkan' : 'diubah';
+            $pesan = "Info Absen:\nAnanda *{$siswa->nama}* ({$siswa->nisn})\npada tanggal {$request->tanggal}\ntelah {$aksi} statusnya menjadi: *{$request->status}*.\nKeterangan: {$request->keterangan}.\nTerima kasih.\n\nNote: Tidak perlu membalas pesan ini.\n\n> Sekolah";
 
-        $kirim = WhatsappService::send($siswa->no_wa, $pesan);
+            $kirim = WhatsappService::send($siswa->no_wa, $pesan);
 
-        $msg = $kirim ? "✅ Data disimpan & WA terkirim." : "⚠️ Data disimpan, tapi WA gagal.";
+            $msg = $kirim ? '✅ Data disimpan & WA terkirim.' : '⚠️ Data disimpan, tapi WA gagal.';
 
-        $user = Auth::user();
-        // 1. Cek Role User
-        if ($user->role === 'guru') {
-            return redirect()->route('dashboard.guru.manual.index', [
-                'tanggal' => $request->tanggal,
-                'kelas' => $request->kelas_filter // Kirim balik filter kelas agar tidak reset
-            ])->with('message', $msg);
-        } else {
+            $user = Auth::user();
+            // 1. Cek Role User
+            if ($user->role === 'guru') {
+                return redirect()->route('dashboard.guru.manual.index', [
+                    'tanggal' => $request->tanggal,
+                    'kelas' => $request->kelas_filter, // Kirim balik filter kelas agar tidak reset
+                ])->with('message', $msg);
+            } else {
+                return redirect()->route('absensi.manual.index', [
+                    'tanggal' => $request->tanggal,
+                    'kelas' => $request->kelas_filter, // Kirim balik filter kelas agar tidak reset
+                    'kategori' => $request->kategori,
+                ])->with('message', $msg);
+            }
+
+        } elseif ($request->kategori == 'guru') {
+            $guru = Guru::findOrFail($request->absen_id);
+
+            // Cek apakah data sudah ada (Update) atau belum (Create)
+            $absensi = Absensi::updateOrCreate(
+                [
+                    'guru_id' => $request->absen_id,
+                    'tanggal' => $request->tanggal,
+                ],
+                [
+                    'status' => $request->status,
+                    'keterangan' => $request->keterangan,
+                ]
+            );
+
+            // Pesan WA
+            $aksi = $absensi->wasRecentlyCreated ? 'ditambahkan' : 'diubah';
+            $pesan = "Info Absen:\n *{$guru->nama}* ({$guru->nip})\npada tanggal {$request->tanggal}\ntelah {$aksi} statusnya menjadi: *{$request->status}*.\nKeterangan: {$request->keterangan}.\nTerima kasih.\n\nNote: Tidak perlu membalas pesan ini.\n\n> Sekolah";
+
+            $kirim = WhatsappService::send($guru->no_wa, $pesan);
+
+            $msg = $kirim ? '✅ Data disimpan & WA terkirim.' : '⚠️ Data disimpan, tapi WA gagal.';
+
+            $user = Auth::user();
+
             return redirect()->route('absensi.manual.index', [
                 'tanggal' => $request->tanggal,
-                'kelas' => $request->kelas_filter // Kirim balik filter kelas agar tidak reset
+                'kategori' => $request->kategori,
             ])->with('message', $msg);
+
         }
+
     }
 
     // Handle Hadir Semua
@@ -149,15 +183,15 @@ class AbsensiController extends Controller
             );
 
             // Kirim WA (Hati-hati spam jika data banyak, sebaiknya gunakan Job Queue)
-            $aksi = $absensi->wasRecentlyCreated ? "ditambahkan" : "diubah";
-            $pesan = "Info Absen:\nAnanda *{$siswa->nama}*\npada tanggal {$tanggal}\ntelah {$aksi} statusnya menjadi: H (Hadir).\nTerima kasih.\n\n> SMK Darul A'mal";
+            $aksi = $absensi->wasRecentlyCreated ? 'ditambahkan' : 'diubah';
+            $pesan = "Info Absen:\nAnanda *{$siswa->nama}*\npada tanggal {$tanggal}\ntelah {$aksi} statusnya menjadi: H (Hadir).\nTerima kasih.\n\n> Sekolah";
 
             WhatsappService::send($siswa->no_wa, $pesan);
         }
 
         return redirect()->route('absensi.manual.index', [
             'tanggal' => $tanggal,
-            'kelas' => $kelasId
+            'kelas' => $kelasId,
         ])->with('message', '✅ Semua siswa ditandai Hadir.');
     }
 
@@ -189,8 +223,8 @@ class AbsensiController extends Controller
             // Cek Status Aktif
             if ($siswa->status != 'aktif') {
                 return response()->json([
-                    "status" => "error",
-                    "message" => "❌ Status siswa (<b>$siswa->nama</b>) tidak aktif."
+                    'status' => 'error',
+                    'message' => "❌ Status siswa (<b>$siswa->nama</b>) tidak aktif.",
                 ]);
             }
 
@@ -198,23 +232,23 @@ class AbsensiController extends Controller
             $result = $this->logikaAbsensiSiswa($siswa, $now);
 
             // Kirim WA Siswa
-            $waStatus = "";
-            if (!empty($result['pesan_wa']) && !empty($siswa->no_wa)) {
+            $waStatus = '';
+            if (! empty($result['pesan_wa']) && ! empty($siswa->no_wa)) {
                 // Gunakan Job jika ingin background process, atau direct service
-                // SendWhatsappJob::dispatch($siswa->no_wa, $result['pesan_wa'], 'Absensi Scan'); 
+                // SendWhatsappJob::dispatch($siswa->no_wa, $result['pesan_wa'], 'Absensi Scan');
                 $isSent = WhatsappService::send($siswa->no_wa, $result['pesan_wa']);
-                $waStatus = $isSent ? "📲 WA terkirim." : "⚠️ WA gagal.";
+                $waStatus = $isSent ? '📲 WA terkirim.' : '⚠️ WA gagal.';
             }
 
             return response()->json([
-                "status" => "success",
-                "message" => $result['msg'] . "<br><small>$waStatus</small>",
-                "data" => [
-                    "nama" => $siswa->nama,
-                    "role" => "Siswa",
-                    "jam" => $now->format('H:i:s'),
-                    "type" => $result['status']
-                ]
+                'status' => 'success',
+                'message' => $result['msg']."<br><small>$waStatus</small>",
+                'data' => [
+                    'nama' => $siswa->nama,
+                    'role' => 'Siswa',
+                    'jam' => $now->format('H:i:s'),
+                    'type' => $result['status'],
+                ],
             ]);
         }
 
@@ -228,10 +262,10 @@ class AbsensiController extends Controller
         if ($guru) {
             $user = Auth::user();
             if ($user->role == 'guru') {
-                return response()->json(["status" => "error", "message" => "Hanya Bisa Scan Siswa"]);
+                return response()->json(['status' => 'error', 'message' => 'Hanya Bisa Scan Siswa']);
             } else {// Cek Status Aktif Guru (Opsional)
                 if (isset($guru->status) && $guru->status != 'aktif') {
-                    return response()->json(["status" => "error", "message" => "❌ Status Guru tidak aktif."]);
+                    return response()->json(['status' => 'error', 'message' => '❌ Status Guru tidak aktif.']);
                 }
 
                 // Validasi Lokasi untuk Guru (Opsional saat Scan QR)
@@ -247,28 +281,27 @@ class AbsensiController extends Controller
                 $result = $this->logikaAbsensiGuru($guru, $now, $lat, $long);
 
                 // Kirim WA Guru
-                $waStatus = "";
-                if (!empty($result['pesan_wa']) && !empty($guru->no_wa)) {
+                $waStatus = '';
+                if (! empty($result['pesan_wa']) && ! empty($guru->no_wa)) {
                     $isSent = WhatsappService::send($guru->no_wa, $result['pesan_wa']);
                     // Kirim notif ke Waka Kurikulum juga jika perlu (seperti di function storeGuru)
-                    if (!empty($profil->wakur_wa)) {
+                    if (! empty($profil->wakur_wa)) {
                         WhatsappService::send($profil->wakur_wa, $result['pesan_wa']);
                     }
-                    $waStatus = $isSent ? "📲 WA terkirim." : "⚠️ WA gagal.";
+                    $waStatus = $isSent ? '📲 WA terkirim.' : '⚠️ WA gagal.';
                 }
 
                 return response()->json([
-                    "status" => "success",
-                    "message" => $result['msg'] . "<br><small>$waStatus</small>",
-                    "data" => [
-                        "nama" => $guru->nama,
-                        "role" => "Guru",
-                        "jam" => $now->format('H:i:s'),
-                        "type" => $result['status']
-                    ]
+                    'status' => 'success',
+                    'message' => $result['msg']."<br><small>$waStatus</small>",
+                    'data' => [
+                        'nama' => $guru->nama,
+                        'role' => 'Guru',
+                        'jam' => $now->format('H:i:s'),
+                        'type' => $result['status'],
+                    ],
                 ]);
             }
-
 
         }
 
@@ -276,8 +309,8 @@ class AbsensiController extends Controller
         // C. DATA TIDAK DITEMUKAN
         // ---------------------------------------------------------------------
         return response()->json([
-            "status" => "error",
-            "message" => "❌ QR Code tidak dikenali!<br><small>Bukan Siswa maupun Guru.</small>"
+            'status' => 'error',
+            'message' => '❌ QR Code tidak dikenali!<br><small>Bukan Siswa maupun Guru.</small>',
         ], 404);
     }
 
@@ -303,7 +336,7 @@ class AbsensiController extends Controller
         $guru = $user->guru ?? $user;
 
         // Safety check jika data guru tidak ditemukan
-        if (!$guru) {
+        if (! $guru) {
             return redirect()->back()->with('error', 'Data profil guru tidak ditemukan.');
         }
 
@@ -323,7 +356,7 @@ class AbsensiController extends Controller
             if ($jarak > $maxRadius) {
                 // 2. JANGAN PAKAI JSON RESPONSE UNTUK FORM BIASA
                 // Gunakan redirect back agar pesan muncul di halaman blade
-                return redirect()->back()->with('error', "❌ Posisi terlalu jauh (" . round($jarak) . "m). Max: $maxRadius m.");
+                return redirect()->back()->with('error', '❌ Posisi terlalu jauh ('.round($jarak)."m). Max: $maxRadius m.");
             }
         }
 
@@ -332,10 +365,10 @@ class AbsensiController extends Controller
         $result = $this->logikaAbsensiGuru($guru, $now, $request->latitude, $request->longitude);
 
         // --- KIRIM WA ---
-        if (!empty($result['pesan_wa']) && !empty($guru->no_wa)) {
+        if (! empty($result['pesan_wa']) && ! empty($guru->no_wa)) {
             // Pastikan WhatsappService sudah di import
             WhatsappService::send($guru->no_wa, $result['pesan_wa']);
-            WhatsappService::send($profil->wakur_wa, $result['pesan_wa']); //Khusus untuk kirim ke BK
+            WhatsappService::send($profil->wakur_wa, $result['pesan_wa']); // Khusus untuk kirim ke BK
         }
 
         // Cek hasil status dari logikaAbsensiGuru
@@ -372,14 +405,14 @@ class AbsensiController extends Controller
             ->whereDate('tanggal', $tanggalBersih)
             ->first();
 
-        if (!$absensi) {
+        if (! $absensi) {
             // ===========================
             // --- ABSEN MASUK ---
             // ===========================
 
             // Gabungkan Tanggal Bersih + Jam Masuk untuk perbandingan
             // Format string: "2024-02-05 07:15:00"
-            $batasMasuk = Carbon::parse($tanggalBersih . ' ' . $jamMasukMax);
+            $batasMasuk = Carbon::parse($tanggalBersih.' '.$jamMasukMax);
 
             // Cek Keterlambatan
             $isTerlambat = $now->gt($batasMasuk);
@@ -391,17 +424,18 @@ class AbsensiController extends Controller
                 'tanggal' => $tanggalBersih,
                 'jam_masuk' => $now,
                 'status' => 'H',
-                'keterangan' => $keterangan
+                'keterangan' => $keterangan,
             ]);
 
             $namaSekolah = optional($profil)->nama_sekolah ?? 'Sekolah';
-            $pesanWa = "Info Absen:\nAnanda *$siswa->nama* ($siswa->nisn)\ntelah *ABSEN MASUK*" . ($isTerlambat ? ' (TERLAMBAT)' : '') . "\npada " . $now->format('d-m-Y H:i') . ".\n\n> " . $namaSekolah;
+            $pesanWa = "Info Absen:\nAnanda *$siswa->nama* ($siswa->nisn)\ntelah *ABSEN MASUK*".($isTerlambat ? ' (TERLAMBAT)' : '')."\npada ".$now->format('d-m-Y H:i').".\n\n> ".$namaSekolah;
 
             $badgeColor = $isTerlambat ? 'alert-warning' : 'alert-success';
+
             return [
                 'status' => 'masuk',
                 'msg' => "<div class='alert $badgeColor'>✅ Absen MASUK Berhasil.<br>Status: <b>$keterangan</b></div>",
-                'pesan_wa' => $pesanWa
+                'pesan_wa' => $pesanWa,
             ];
         } else {
             // ===========================
@@ -411,14 +445,14 @@ class AbsensiController extends Controller
             if (empty($absensi->jam_pulang)) {
 
                 // Gabungkan Tanggal Bersih + Jam Pulang
-                $batasPulang = Carbon::parse($tanggalBersih . ' ' . $jamPulangMin);
+                $batasPulang = Carbon::parse($tanggalBersih.' '.$jamPulangMin);
 
                 // Cek apakah sudah boleh pulang
                 if ($now->lt($batasPulang)) {
                     return [
                         'status' => 'error',
                         'msg' => "<div class='alert alert-danger'>⛔ Belum jam pulang! (Min: $jamPulangMin)</div>",
-                        'pesan_wa' => null
+                        'pesan_wa' => null,
                     ];
                 }
 
@@ -427,18 +461,18 @@ class AbsensiController extends Controller
                 ]);
 
                 $namaSekolah = optional($profil)->nama_sekolah ?? 'Sekolah';
-                $pesanWa = "Info Absen:\nAnanda *$siswa->nama* ($siswa->nisn)\ntelah *ABSEN PULANG*\npada " . $now->format('d-m-Y H:i') . ".\n\n> " . $namaSekolah;
+                $pesanWa = "Info Absen:\nAnanda *$siswa->nama* ($siswa->nisn)\ntelah *ABSEN PULANG*\npada ".$now->format('d-m-Y H:i').".\n\n> ".$namaSekolah;
 
                 return [
                     'status' => 'pulang',
                     'msg' => "<div class='alert alert-success'>👋 Absen PULANG Berhasil. Hati-hati di jalan!</div>",
-                    'pesan_wa' => $pesanWa
+                    'pesan_wa' => $pesanWa,
                 ];
             } else {
                 return [
                     'status' => 'info',
                     'msg' => "<div class='alert alert-info'>ℹ️ Siswa ini sudah menyelesaikan absen hari ini.</div>",
-                    'pesan_wa' => null
+                    'pesan_wa' => null,
                 ];
             }
         }
@@ -461,9 +495,9 @@ class AbsensiController extends Controller
             ->whereDate('tanggal', $tanggalBersih)
             ->first();
 
-        if (!$absensi) {
+        if (! $absensi) {
             // --- GURU MASUK ---
-            $batasMasuk = Carbon::parse($tanggalBersih . ' ' . $jamMasukMax);
+            $batasMasuk = Carbon::parse($tanggalBersih.' '.$jamMasukMax);
 
             $isTerlambat = $now->gt($batasMasuk);
             $keterangan = $isTerlambat ? 'Terlambat' : 'Tepat Waktu';
@@ -475,17 +509,17 @@ class AbsensiController extends Controller
                 'status' => 'H',
                 'latitude' => $lat,
                 'longitude' => $long,
-                'keterangan' => $keterangan
+                'keterangan' => $keterangan,
             ]);
 
-            $pesanWa = "Presensi: Yth. *$guru->nama*, Anda telah *ABSEN MASUK* pada " . $now->format('H:i') . ".";
+            $pesanWa = "Presensi: Yth. *$guru->nama*, Anda telah *ABSEN MASUK* pada ".$now->format('H:i').'.';
 
             return ['status' => 'masuk', 'msg' => "Absen Masuk Berhasil ($keterangan)", 'pesan_wa' => $pesanWa];
         } else {
             // --- GURU PULANG ---
             if (empty($absensi->jam_pulang)) {
 
-                $batasPulang = Carbon::parse($tanggalBersih . ' ' . $jamPulangMin);
+                $batasPulang = Carbon::parse($tanggalBersih.' '.$jamPulangMin);
 
                 if ($now->lt($batasPulang)) {
                     return ['status' => 'error', 'msg' => "Belum waktunya pulang. (Jadwal: $jamPulangMin)", 'pesan_wa' => null];
@@ -495,11 +529,11 @@ class AbsensiController extends Controller
                     'jam_pulang' => $now,
                 ]);
 
-                $pesanWa = "Presensi: Yth. *$guru->nama*, Anda telah *ABSEN PULANG* pada " . $now->format('H:i') . ".";
+                $pesanWa = "Presensi: Yth. *$guru->nama*, Anda telah *ABSEN PULANG* pada ".$now->format('H:i').'.';
 
-                return ['status' => 'pulang', 'msg' => "Absen Pulang Berhasil.", 'pesan_wa' => $pesanWa];
+                return ['status' => 'pulang', 'msg' => 'Absen Pulang Berhasil.', 'pesan_wa' => $pesanWa];
             } else {
-                return ['status' => 'info', 'msg' => "Anda sudah absen pulang hari ini.", 'pesan_wa' => null];
+                return ['status' => 'info', 'msg' => 'Anda sudah absen pulang hari ini.', 'pesan_wa' => null];
             }
         }
     }
@@ -514,6 +548,7 @@ class AbsensiController extends Controller
             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
             sin($dLon / 2) * sin($dLon / 2);
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
         return $earthRadius * $c;
     }
 }

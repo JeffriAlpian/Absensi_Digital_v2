@@ -119,7 +119,7 @@
                                     <form method="POST" action="{{ route('absensi.manual.storeManual') }}">
                                         @csrf
                                         <input type="hidden" name="kategori" value="siswa">
-                                        <input type="hidden" name="siswa_id" value="{{ $item->id }}">
+                                        <input type="hidden" name="absen_id" value="{{ $item->id }}">
                                         <input type="hidden" name="tanggal" value="{{ $tanggal }}">
                                         <input type="hidden" name="kelas_filter" value="{{ $kelasId }}">
 
