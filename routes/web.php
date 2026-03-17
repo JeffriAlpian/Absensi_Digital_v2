@@ -1,21 +1,20 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\KelasController;
-use App\Http\Controllers\SiswaController;
-use App\Http\Controllers\GuruController;
-use App\Http\Controllers\KartuController;
-use App\Http\Controllers\WakelController;
-use App\Http\Controllers\PengaturanController;
-use App\Http\Controllers\DeviceRfidController;
-use App\Http\Controllers\CetakKartuController;
-use App\Http\Controllers\ImportExcelController;
 use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CetakKartuController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\RekapController;
+use App\Http\Controllers\DeviceRfidController;
+use App\Http\Controllers\GuruController;
+use App\Http\Controllers\ImportExcelController;
+use App\Http\Controllers\KartuController;
+use App\Http\Controllers\KelasController;
+use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RekapController;
+use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\WakelController;
 use Illuminate\Support\Facades\Route;
-
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login']);
@@ -77,6 +76,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/rekap-harian', [RekapController::class, 'rekapHarian'])->name('rekap.harian');
     Route::get('/rekap-bulanan', [RekapController::class, 'rekapBulanan'])->name('rekap.bulanan');
     Route::get('/rekap-bulanan/export', [RekapController::class, 'exportBulananExcel'])->name('rekap.bulanan.export');
+
+    Route::post('/siswa/hapus-banyak', [SiswaController::class, 'hapusBanyak'])->name('siswa.hapus_banyak');
+    Route::post('/siswa/hapus-kelas/{kelas_id}', [SiswaController::class, 'hapusPerKelas'])->name('siswa.hapus_kelas');
+    Route::post('/cetak-kartu/siswa/banyak', [CetakKartuController::class, 'cetakSiswaBanyak'])->name('cetak.kartu.siswa.banyak');
+
+    Route::get('/cetak-kartu/siswa/kelas/{kelas_id}', [CetakKartuController::class, 'cetakSiswaPerKelas'])->name('cetak.kartu.siswa.kelas');
 });
 
 Route::prefix('kelas')->name('kelas.')->middleware(['auth', 'role:admin'])->group(function () {

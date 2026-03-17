@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Siswa;
 use App\Models\Guru;
 use App\Models\ProfilSekolah;
-use Illuminate\Http\Request;
+use App\Models\Siswa;
 use FPDF;
+use Illuminate\Http\Request;
 
 class CetakKartuController extends Controller
 {
     // --- 1. PUBLIC METHOD: CETAK SISWA ---
     public function cetakSiswa()
     {
-
 
         // Ambil data Siswa
         $dataSiswa = Siswa::with('kelas')
@@ -29,10 +28,10 @@ class CetakKartuController extends Controller
                 'desain_kartu' => $profil->desain_kartu_siswa_depan,
                 'nama' => $siswa->nama,
                 'no_induk_label' => 'NIS/NISN',
-                'no_induk' => $siswa->nis . ' / ' . $siswa->nisn,
+                'no_induk' => $siswa->nis.' / '.$siswa->nisn,
                 'baris_3_label' => 'TTL', // Label baris ke-3
-                'baris_3_value' => $siswa->tempat_lahir . ', ' . date('d/m/Y', strtotime($siswa->tanggal_lahir)),
-                'qr_code' => $siswa->nisn // Kode untuk cari gambar QR
+                'baris_3_value' => $siswa->tempat_lahir.', '.date('d/m/Y', strtotime($siswa->tanggal_lahir)),
+                'qr_code' => $siswa->nisn, // Kode untuk cari gambar QR
             ];
         });
 
@@ -56,11 +55,78 @@ class CetakKartuController extends Controller
                 'baris_3_value' => $guru->jabatan ?? 'Guru Mapel',
                 'baris_4_label' => 'Mapel', // Guru tidak punya kelas, tapi Mapel
                 'baris_4_value' => $guru->mata_pelajaran ?? '-',
-                'qr_code' => $guru->nip // Pakai NIP untuk nama file QR
+                'qr_code' => $guru->nip, // Pakai NIP untuk nama file QR
             ];
         });
 
         return $this->prosesCetakPDF($listKartu, 'Kartu_Guru');
+    }
+
+    // --- 1.C PUBLIC METHOD: CETAK SISWA BANYAK (CHECKBOX) ---
+    public function cetakSiswaBanyak(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (empty($ids)) {
+            return "<script>alert('Pilih minimal satu siswa!'); window.close();</script>";
+        }
+
+        // Ambil data Siswa berdasarkan ID yang di-ceklist
+        $dataSiswa = Siswa::with('kelas')
+            ->whereIn('id', $ids)
+            ->where('status', 'aktif')
+            ->orderBy('nama', 'ASC')
+            ->get();
+
+        $profil = ProfilSekolah::first();
+        $listKartu = $dataSiswa->map(function ($siswa) use ($profil) {
+            return (object) [
+                'desain_kartu' => $profil->desain_kartu_siswa_depan,
+                'nama' => $siswa->nama,
+                'no_induk_label' => 'NIS/NISN',
+                'no_induk' => $siswa->nis.' / '.$siswa->nisn,
+                'baris_3_label' => 'TTL',
+                'baris_3_value' => $siswa->tempat_lahir.', '.date('d/m/Y', strtotime($siswa->tanggal_lahir)),
+                'qr_code' => $siswa->nisn,
+            ];
+        });
+
+        return $this->prosesCetakPDF($listKartu, 'Kartu_Pelajar_Terpilih');
+    }
+
+    // --- 1.B PUBLIC METHOD: CETAK SISWA PER KELAS ---
+    public function cetakSiswaPerKelas($kelas_id)
+    {
+        // Ambil data Siswa berdasarkan kelas yang dipilih
+        $dataSiswa = Siswa::with('kelas')
+            ->where('status', 'aktif')
+            ->where('id_kelas', $kelas_id)
+            ->orderBy('nama', 'ASC')
+            ->get();
+
+        if ($dataSiswa->isEmpty()) {
+            // Bisa return string sederhana atau redirect back dengan pesan error
+            return "<script>alert('Tidak ada data siswa di kelas ini!'); window.close();</script>";
+        }
+
+        $profil = ProfilSekolah::first();
+        $listKartu = $dataSiswa->map(function ($siswa) use ($profil) {
+            return (object) [
+                'desain_kartu' => $profil->desain_kartu_siswa_depan,
+                'nama' => $siswa->nama,
+                'no_induk_label' => 'NIS/NISN',
+                'no_induk' => $siswa->nis . ' / ' . $siswa->nisn,
+                'baris_3_label' => 'TTL',
+                'baris_3_value' => $siswa->tempat_lahir . ', ' . date('d/m/Y', strtotime($siswa->tanggal_lahir)),
+                'qr_code' => $siswa->nisn
+            ];
+        });
+
+        // Buat nama file dinamis sesuai nama kelas
+        $namaKelas = $dataSiswa->first()->kelas->nama_kelas ?? 'Kelas';
+        $judulFile = 'Kartu_Pelajar_' . str_replace(' ', '_', $namaKelas);
+
+        return $this->prosesCetakPDF($listKartu, $judulFile);
     }
 
     // --- 3. PRIVATE METHOD: INTINYA DISINI (Reusable) ---
@@ -70,7 +136,7 @@ class CetakKartuController extends Controller
         if ($dataList->isEmpty() || empty($dataList->first()->desain_kartu)) {
             $background_path = '';
         } else {
-            $background_path = public_path('storage/' . ($dataList->first()->desain_kartu ?? ''));
+            $background_path = public_path('storage/'.($dataList->first()->desain_kartu ?? ''));
         }
 
         $pdf = new Fpdf('P', 'mm', 'A4');
@@ -90,9 +156,13 @@ class CetakKartuController extends Controller
         $page_height = 297;
         $printable_width = $page_width - 2 * $margin_x;
         $columns = (int) floor(($printable_width + $spacing_x) / ($card_width + $spacing_x));
-        if ($columns < 1) $columns = 1;
+        if ($columns < 1) {
+            $columns = 1;
+        }
         $rows = (int) floor(($page_height - 2 * $margin_y + $spacing_y) / ($card_height + $spacing_y));
-        if ($rows < 1) $rows = 1;
+        if ($rows < 1) {
+            $rows = 1;
+        }
         $cards_per_page = $columns * $rows;
 
         $pdf->AddPage();
@@ -101,6 +171,7 @@ class CetakKartuController extends Controller
         if ($dataList->isEmpty()) {
             $pdf->SetFont('Arial', 'B', 16);
             $pdf->Cell(0, 10, 'Tidak ada data untuk dicetak.', 0, 1, 'C');
+
             return response($pdf->Output('S'), 200)->header('Content-Type', 'application/pdf');
         }
 
@@ -145,7 +216,7 @@ class CetakKartuController extends Controller
             $pdf->SetFont('Arial', 'B', 8);
             $pdf->Cell($labelW, $lineH, 'Nama', 0, 0, 'L');
             $pdf->Cell($gap, $lineH, ':', 0, 0, 'C');
-            $pdf->Cell($valW, $lineH, ' ' . $name, 0, 1, 'L');
+            $pdf->Cell($valW, $lineH, ' '.$name, 0, 1, 'L');
 
             $pdf->SetFont('Arial', '', 6.5);
 
@@ -154,17 +225,17 @@ class CetakKartuController extends Controller
             $pdf->SetXY($startX, $curY);
             $pdf->Cell($labelW, $lineH, $data->no_induk_label, 0, 0, 'L'); // Label Dinamis
             $pdf->Cell($gap, $lineH, ':', 0, 0, 'C');
-            $pdf->Cell($valW, $lineH, ' ' . $data->no_induk, 0, 1, 'L'); // Value Dinamis
+            $pdf->Cell($valW, $lineH, ' '.$data->no_induk, 0, 1, 'L'); // Value Dinamis
 
             // Baris 3 (TTL / Jabatan)
             $curY += $lineH;
             $pdf->SetXY($startX, $curY);
             $pdf->Cell($labelW, $lineH, $data->baris_3_label, 0, 0, 'L');
             $pdf->Cell($gap, $lineH, ':', 0, 0, 'C');
-            $pdf->Cell($valW, $lineH, ' ' . $data->baris_3_value, 0, 1, 'L');
+            $pdf->Cell($valW, $lineH, ' '.$data->baris_3_value, 0, 1, 'L');
 
             // 4. Render QR Code
-            $qr_path = public_path('storage/qr/' . $data->qr_code . '.png');
+            $qr_path = public_path('storage/qr/'.$data->qr_code.'.png');
             if (file_exists($qr_path)) {
                 $pdf->Image($qr_path, $x + $card_width - 29, $y + ($card_height - 16) / 2, 20, 20);
             }
@@ -172,7 +243,7 @@ class CetakKartuController extends Controller
             $index++;
         }
 
-        return response($pdf->Output('I', $judulFile . '.pdf'), 200)
+        return response($pdf->Output('I', $judulFile.'.pdf'), 200)
             ->header('Content-Type', 'application/pdf');
     }
 
@@ -180,14 +251,18 @@ class CetakKartuController extends Controller
     private function shortenName($name)
     {
         $name = trim($name);
-        if ($name === '') return '-';
+        if ($name === '') {
+            return '-';
+        }
         $words = preg_split('/\s+/u', $name, -1, PREG_SPLIT_NO_EMPTY);
         if (count($words) > 2) {
             $first_two = array_slice($words, 0, 2);
             $rest = array_slice($words, 2);
-            $abbreviated = array_map(fn($w) => mb_substr($w, 0, 1) . '.', $rest);
+            $abbreviated = array_map(fn ($w) => mb_substr($w, 0, 1).'.', $rest);
+
             return implode(' ', array_merge($first_two, $abbreviated));
         }
+
         return implode(' ', $words);
     }
 }

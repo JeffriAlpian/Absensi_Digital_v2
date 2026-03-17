@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Siswa;
 use App\Models\Kelas;
+use App\Models\Siswa;
 use App\Models\User;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Writer\PngWriter;
+// Panggil Library Endroid
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-// Panggil Library Endroid
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Writer\PngWriter;
-
 class SiswaController extends Controller
 {
     public function index(Request $request)
     {
-        // Fitur Pencarian (Pengganti siswa_cari.php)
+        // Ambil data kelas untuk dropdown filter
+        $kelas = Kelas::orderBy('nama_kelas', 'asc')->get();
+
         $query = Siswa::with('kelas')->where('status', 'aktif');
 
-        if ($request->has('q')) {
+        // Filter Pencarian Text
+        if ($request->has('q') && $request->q != '') {
             $search = $request->q;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
@@ -32,14 +34,21 @@ class SiswaController extends Controller
             });
         }
 
+        // Filter Berdasarkan Kelas
+        if ($request->has('kelas_id') && $request->kelas_id != '') {
+            $query->where('id_kelas', $request->kelas_id);
+        }
+
         $data_siswa = $query->latest()->get();
 
-        return view('siswa.index', compact('data_siswa'));
+        // Kirim $kelas ke view juga
+        return view('siswa.index', compact('data_siswa', 'kelas'));
     }
 
     public function create()
     {
         $kelas = Kelas::all();
+
         return view('siswa.create', compact('kelas'));
     }
 
@@ -65,7 +74,7 @@ class SiswaController extends Controller
             User::create([
                 'username' => $request->nisn,
                 'password' => Hash::make($request->nisn),
-                'role' => 'siswa'
+                'role' => 'siswa',
             ]);
 
             // 2. Simpan Siswa
@@ -91,6 +100,7 @@ class SiswaController extends Controller
     {
         $siswa = Siswa::findOrFail($id);
         $kelas = Kelas::all();
+
         return view('siswa.edit', compact('siswa', 'kelas'));
     }
 
@@ -101,8 +111,8 @@ class SiswaController extends Controller
 
         // Validasi
         $request->validate([
-            'nis' => 'required|unique:siswa,nis,' . $id,
-            'nisn' => 'required|unique:siswa,nisn,' . $id,
+            'nis' => 'required|unique:siswa,nis,'.$id,
+            'nisn' => 'required|unique:siswa,nisn,'.$id,
             'nama' => 'required',
         ]);
 
@@ -114,12 +124,12 @@ class SiswaController extends Controller
             // Update Username di tabel User
             User::where('username', $old_nisn)->update([
                 'username' => $request->nisn,
-                'password' => Hash::make($request->nisn) // Reset password ke NISN baru
+                'password' => Hash::make($request->nisn), // Reset password ke NISN baru
             ]);
 
             // Hapus QR lama & Buat baru
-            if (Storage::exists('public/qr/' . $old_nisn . '.png')) {
-                Storage::delete('public/qr/' . $old_nisn . '.png');
+            if (Storage::exists('public/qr/'.$old_nisn.'.png')) {
+                Storage::delete('public/qr/'.$old_nisn.'.png');
             }
             $this->generateQrCode($request->nisn);
         }
@@ -155,7 +165,7 @@ class SiswaController extends Controller
                 ['username' => $s->nisn], // Kondisi pencarian
                 [
                     'password' => Hash::make($s->nisn), // Data jika dibuat baru
-                    'role'     => 'siswa',
+                    'role' => 'siswa',
                 ]
             );
 
@@ -176,12 +186,51 @@ class SiswaController extends Controller
         return redirect()->back()->with('success', "Selesai! $count akun baru dibuat, $updated data siswa ditautkan.");
     }
 
+    // --- TAMBAHAN BULK ACTION & KELAS ---
+
+    public function hapusBanyak(Request $request)
+    {
+        $ids = $request->input('ids'); // Mengambil array ID dari checkbox
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'Pilih minimal satu siswa untuk dihapus.');
+        }
+
+        // Cari siswa yang di-ceklist
+        $siswas = Siswa::whereIn('id', $ids)->get();
+
+        foreach ($siswas as $siswa) {
+            $siswa->update(['status' => 'nonaktif']);
+            User::where('username', $siswa->nisn)->delete();
+        }
+
+        return redirect()->back()->with('success', count($ids).' siswa terpilih berhasil dikeluarkan/dihapus.');
+    }
+
+    public function hapusPerKelas($kelas_id)
+    {
+        // Cari semua siswa aktif di kelas tersebut
+        $siswas = Siswa::where('id_kelas', $kelas_id)->where('status', 'aktif')->get();
+        $count = $siswas->count();
+
+        if ($count == 0) {
+            return redirect()->back()->with('error', 'Tidak ada siswa aktif di kelas ini.');
+        }
+
+        foreach ($siswas as $siswa) {
+            $siswa->update(['status' => 'nonaktif']);
+            User::where('username', $siswa->nisn)->delete();
+        }
+
+        return redirect()->back()->with('success', $count.' siswa di kelas tersebut berhasil dikeluarkan/dihapus.');
+    }
+
     // --- Helper Functions ---
     private function generateQrCode($code)
     {
         // 1. Generate QR Code Object
         $result = Builder::create()
-            ->writer(new PngWriter()) // Menggunakan GD (Aman untuk shared hosting)
+            ->writer(new PngWriter) // Menggunakan GD (Aman untuk shared hosting)
             ->writerOptions([])
             ->data($code)
             ->encoding(new Encoding('UTF-8'))
@@ -192,6 +241,6 @@ class SiswaController extends Controller
 
         // 2. Simpan ke Storage (Folder: storage/app/public/qr)
         // getString() mengubah gambar menjadi string binary agar bisa disimpan oleh Storage::put
-        Storage::disk('public')->put('qr/' . $code . '.png', $result->getString());
+        Storage::disk('public')->put('qr/'.$code.'.png', $result->getString());
     }
 }
