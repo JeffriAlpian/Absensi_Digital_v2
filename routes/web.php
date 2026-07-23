@@ -6,6 +6,7 @@ use App\Http\Controllers\CetakKartuController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceRfidController;
 use App\Http\Controllers\GuruController;
+use App\Http\Controllers\HariLiburController;
 use App\Http\Controllers\ImportExcelController;
 use App\Http\Controllers\KartuController;
 use App\Http\Controllers\KelasController;
@@ -32,6 +33,8 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
     Route::get('/dashboardGuru/scan', [GuruController::class, 'indexGuruScan'])->name('dashboard.guru.scan.index');
 
     Route::post('/scan/storeScan', [AbsensiController::class, 'storeScan'])->name('scan.storeScan');
+
+    Route::post('/scan/storeScanGuru', [AbsensiController::class, 'storeScanGuru'])->name('scan.storeScanGuru');
 
     // Route spesifik menu guru
     Route::get('/dashboardGuru/absen', [GuruController::class, 'indexGuruabsen'])->name('dashboard.guru.absen.index');
@@ -128,7 +131,7 @@ Route::prefix('guru')->name('guru.')->middleware(['auth', 'role:admin'])->group(
 Route::prefix('kartu')->name('kartu.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [KartuController::class, 'index'])->name('index');
     Route::post('/store', [KartuController::class, 'store'])->name('store');
-
+    Route::put('/{id}', [KartuController::class, 'update'])->name('update');
     Route::delete('/{id}', [KartuController::class, 'destroy'])->name('destroy');
 });
 
@@ -139,4 +142,13 @@ Route::prefix('wakel')->name('wakel.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/{id}/edit', [WakelController::class, 'edit'])->name('edit');
     Route::put('/{id}', [WakelController::class, 'update'])->name('update');
     Route::delete('/{id}', [WakelController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('hari-libur')->name('hari-libur.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/', [HariLiburController::class, 'index'])->name('index');
+    Route::get('/create', [HariLiburController::class, 'create'])->name('create');
+    Route::post('/store', [HariLiburController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [HariLiburController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [HariLiburController::class, 'update'])->name('update');
+    Route::delete('/{id}', [HariLiburController::class, 'destroy'])->name('destroy');
 });

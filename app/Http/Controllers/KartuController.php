@@ -78,6 +78,24 @@ class KartuController extends Controller
         return redirect()->route('kartu.index')->with('success', 'Kartu RFID berhasil didaftarkan!');
     }
 
+    public function update(Request $request, $id)
+    {
+        $kartu = KartuRfid::findOrFail($id);
+        
+        $request->validate([
+            'uid' => 'required|unique:kartu_rfid,uid,' . $kartu->id,
+        ], [
+            'uid.required' => 'UID Kartu wajib diisi.',
+            'uid.unique' => 'UID Kartu sudah terdaftar!',
+        ]);
+
+        $kartu->update([
+            'uid' => $request->uid,
+        ]);
+
+        return redirect()->route('kartu.index')->with('success', 'UID Kartu RFID berhasil diperbarui!');
+    }
+
     public function destroy($id)
     {
         // Cari data berdasarkan ID, jika tidak ada tampilkan error 404

@@ -14,7 +14,7 @@
             <i class="fa-solid fa-user-pen mr-2 text-yellow-500"></i>Edit Data Siswa
         </h2>
 
-        <form action="{{ route('siswa.update', $siswa->id) }}" method="POST">
+        <form action="{{ route('siswa.update', $siswa->id) }}" method="POST" enctype="multipart/form-data">
             @csrf 
             @method('PUT') <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
@@ -94,6 +94,17 @@
                            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-green-500 focus:border-green-500"
                            placeholder="Contoh: 62812345678">
                 </div>
+
+                <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Foto Siswa (Biarkan kosong jika tidak diubah)</label>
+    <input type="file" name="foto" accept="image/*" class="w-full border border-gray-300 rounded-md px-3 py-2">
+    @if($siswa->foto)
+        <img src="{{ asset('storage/foto_siswa/' . $siswa->foto) }}" class="mt-2 w-20 h-20 object-cover rounded shadow">
+    @endif
+    @error('foto')
+        <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
+    @enderror
+</div>
 
             </div>
 

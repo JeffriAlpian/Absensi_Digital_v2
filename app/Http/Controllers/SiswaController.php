@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Format;
 
 class SiswaController extends Controller
 {
@@ -60,6 +63,7 @@ class SiswaController extends Controller
             'nisn' => 'required|unique:siswa,nisn',
             'nama' => 'required',
             'id_kelas' => 'required',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:50000',
         ], [
             'nis.required' => 'NIS wajib diisi.',
             'nis.unique' => 'NIS sudah terdaftar.',
@@ -67,6 +71,7 @@ class SiswaController extends Controller
             'nisn.unique' => 'NISN sudah terdaftar.',
             'nama.required' => 'Nama wajib diisi.',
             'id_kelas.required' => 'Kelas wajib dipilih.',
+            'foto.image' => 'File harus berupa gambar.',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -76,6 +81,28 @@ class SiswaController extends Controller
                 'password' => Hash::make($request->nisn),
                 'role' => 'siswa',
             ]);
+
+            // Proses Upload & Kompresi Foto
+            // Proses Upload & Kompresi Foto
+            $nama_foto = null;
+            if ($request->hasFile('foto')) {
+                $foto = $request->file('foto');
+                $nama_foto = $request->nisn.'-'.time().'.jpg';
+
+                // Inisialisasi Manager dengan Driver GD
+                $manager = ImageManager::usingDriver(GdDriver::class);
+
+                // read image data from path
+                $image = $manager->decodePath($foto->path());
+
+                $image->scale(height: 500);
+
+                // encode edited image
+                $encoded = $image->encodeUsingFormat(Format::JPEG, quality: 75);
+
+                // Simpan ke storage
+                Storage::disk('public')->put('foto_siswa/' . $nama_foto, (string) $encoded);
+            }
 
             // 2. Simpan Siswa
             $siswa = Siswa::create([
@@ -87,6 +114,7 @@ class SiswaController extends Controller
                 'id_kelas' => $request->id_kelas,
                 'no_wa' => $request->no_wa,
                 'status' => 'aktif',
+                'foto' => $nama_foto,
             ]);
 
             // 3. Generate QR Code
@@ -114,10 +142,34 @@ class SiswaController extends Controller
             'nis' => 'required|unique:siswa,nis,'.$id,
             'nisn' => 'required|unique:siswa,nisn,'.$id,
             'nama' => 'required',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:50000',
         ]);
 
+        $data_update = $request->except(['foto']);
+
+       // Proses Update Foto
+        if ($request->hasFile('foto')) {
+            // Hapus foto lama jika ada
+            if ($siswa->foto && Storage::exists('public/foto_siswa/'.$siswa->foto)) {
+                Storage::delete('public/foto_siswa/'.$siswa->foto);
+            }
+
+            $foto = $request->file('foto');
+            $nama_foto = $request->nisn . '-' . time() . '.jpg';
+            
+            // Kompresi dengan sintaks baru
+            $manager = ImageManager::usingDriver(GdDriver::class);
+            $image = $manager->decodePath($foto->path());
+            $image->scale(width: 500);
+            $encoded = $image->encodeUsingFormat(Format::JPEG, quality: 75);
+            
+            Storage::disk('public')->put('foto_siswa/' . $nama_foto, (string) $encoded);
+            
+            $data_update['foto'] = $nama_foto;
+        }
+
         // Update Data
-        $siswa->update($request->all());
+        $siswa->update($data_update);
 
         // Cek jika NISN berubah, update User & QR
         if ($old_nisn !== $request->nisn) {

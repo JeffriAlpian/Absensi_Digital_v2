@@ -136,6 +136,17 @@ class GuruController extends Controller
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil diperbarui.');
     }
 
+    public function keluar($id)
+    {
+        $guru = Guru::findOrFail($id);
+        $guru->update(['status' => 'nonaktif']);
+
+        // Opsional: Matikan user loginnya
+        User::where('username', $guru->nip)->delete();
+
+        return redirect()->back()->with('success', 'Guru ditandai keluar/nonaktif.');
+    }
+
     public function generateAkun()
     {
         // Ambil guru aktif yang memiliki NIP (jaga-jaga jika ada data kosong)

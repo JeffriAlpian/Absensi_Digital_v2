@@ -40,13 +40,18 @@
         </a>
         <a href="{{ route('wakel.index') }}"
             class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('wakel.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-teacher w-5 text-center"></i>
+            <i class="fas fa-person w-5 text-center"></i>
             <span>Data Wakel</span>
         </a>
         <a href="{{ route('device_rfid.index') }}"
             class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('device_rfid.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
             <i class="fa-brands fa-nfc-directional w-5 text-center"></i>
             <span>Data Device RFID</span>
+        </a>
+        <a href="{{ route('hari-libur.index') }}"
+            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('hari-libur.*') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
+            <i class="fas fa-calendar-day w-5 text-center"></i>
+            <span>Data Hari Libur</span>
         </a>
     </div>
 

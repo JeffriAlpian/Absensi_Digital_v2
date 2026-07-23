@@ -99,97 +99,102 @@ Setelah migrasi dengan seed:
 
 ## ☁️ Deployment ke Shared Hosting (cPanel)
 
-### 📁 Struktur Folder
-```
+### 📦 1. Persiapan File (Membuat Zip)
+Sebelum mengupload ke hosting, pastikan Anda telah mem-build asset frontend (jika ada perubahan) di server lokal dengan perintah `npm run build`.
+
+**Daftar yang perlu di-zip:**
+Pilih (blok) seluruh file dan folder di dalam proyek Anda **KECUALI**:
+- ❌ `node_modules/` (ukurannya besar dan tidak diperlukan di production)
+- ❌ `.git/` (folder riwayat versi/git)
+- ❌ `tests/` (opsional, karena tidak dijalankan di production)
+
+Setelah diblok, jadikan satu file arsip, misalnya `app.zip`. Pastikan Anda men-zip *isi* foldernya, bukan folder utamanya, agar saat diekstrak tidak ada folder ganda.
+
+---
+
+### 🚀 2. Metode Konfigurasi di cPanel
+Ada dua metode yang bisa digunakan. Pilih salah satu yang didukung oleh layanan hosting Anda.
+
+#### 🌟 Metode A: Mengubah Document Root (Lebih Aman & Direkomendasikan)
+Metode ini sangat disarankan jika Anda menggunakan **Subdomain** atau hosting Anda mengizinkan perubahan Document Root untuk domain utama.
+
+1. Buka **File Manager** cPanel, buat folder baru di luar `public_html` (misal: `absensi_app`).
+2. Upload dan **Extract** `app.zip` ke dalam folder `absensi_app` tersebut.
+3. Buka menu **Domains** atau **Subdomains** di cPanel.
+4. Edit **Document Root** dari domain/subdomain Anda agar mengarah ke folder public Laravel.
+   *Contoh: ubah `/public_html/absensi` menjadi `/absensi_app/public`*.
+5. Buat database di **MySQL® Databases** beserta User-nya.
+6. Edit file `.env` di dalam folder `absensi_app`, sesuaikan kredensial:
+   ```env
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://domain-anda.com
+   DB_DATABASE=nama_database
+   DB_USERNAME=user_database
+   DB_PASSWORD=password_database
+   ```
+7. Selesai! Aplikasi Anda sudah bisa diakses dengan aman.
+
+---
+
+#### 📁 Metode B: Memisahkan Folder Public (Untuk Domain Utama)
+Gunakan metode ini jika Anda memakai domain utama dan cPanel **TIDAK MENGIZINKAN** pengubahan Document Root dari `public_html`.
+
+**Struktur Folder Target:**
+```text
 /home/username/
-├── laravel_app/          # Folder Core (private)
+├── laravel_core/         # Buat folder ini untuk menyimpan file inti (private)
 │   ├── app/
 │   ├── bootstrap/
 │   ├── config/
 │   ├── database/
 │   ├── storage/
-│   └── vendor/
-└── public_html/          # Folder Public
-    ├── index.php         # Modified index.php
-    ├── build/            # Compiled assets
-    └── storage -> ../laravel_app/storage/app/public  # Symlink
+│   ├── vendor/
+│   └── ... (file lainnya)
+└── public_html/          # Folder Public bawaan cPanel
+    ├── index.php         # File index.php yang sudah dimodifikasi
+    ├── build/            # Asset hasil build Vite
+    └── storage           # Symlink ke storage/app/public
 ```
 
-### 📋 Langkah Deployment
-
-1. **Upload File Core**
-   - Upload seluruh isi project (kecuali `node_modules`, `public/build`) ke `laravel_app`
-
-2. **Upload File Public**
-   - Upload isi folder `public` ke `public_html`
-   - Pastikan file `index.php` sudah dimodifikasi (lihat bagian berikut)
-
-3. **Konfigurasi `index.php`**
-   Edit `public_html/index.php`:
-```php
-<?php
-// Arahkan ke folder core Laravel
-$corePath = __DIR__ . '/../laravel_app';
-
-require $corePath . '/vendor/autoload.php';
-$app = require_once $corePath . '/bootstrap/app.php';
-
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
-
-$response->send();
-$kernel->terminate($request, $response);
-```
-
-4. **Konfigurasi `.env`**
-   Edit `.env` di folder `laravel_app`:
-```env
-APP_URL=https://domain-anda.com
-APP_ENV=production
-
-# Koneksi Database
-DB_HOST=localhost
-DB_DATABASE=nama_database
-DB_USERNAME=username_db
-DB_PASSWORD=password_db
-
-# Asset URL
-ASSET_URL=https://domain-anda.com
-```
-
-5. **Setup Symlink Storage**
-   Jika symlink tidak bekerja, gunakan cron job:
-   ```bash
-   ln -s /home/username/laravel_app/storage/app/public /home/username/public_html/storage
-   ```
-   
-   Atau buat folder manual:
-   - Buat folder `public_html/storage`
-   - Ubah path di `laravel_app/config/filesystems.php`:
+**Langkah-langkah:**
+1. Buka **File Manager**, buat folder `laravel_core` sejajar dengan `public_html`.
+2. Upload dan **Extract** `app.zip` ke dalam folder `laravel_core`.
+3. Masuk ke folder `laravel_core/public`, lalu **pindahkan (move)** seluruh isinya ke dalam folder `public_html`.
+4. Buka folder `public_html`, lalu edit file `index.php`.
+5. Modifikasi dua baris berikut agar mengarah ke folder `laravel_core`:
    ```php
-   'public' => [
-       'driver' => 'local',
-       'root' => '/home/username/public_html/storage',
-       'url' => env('APP_URL').'/storage',
-       'visibility' => 'public',
-   ],
+   // Ubah dari: require __DIR__.'/../vendor/autoload.php';
+   // Menjadi:
+   require __DIR__.'/../laravel_core/vendor/autoload.php';
+
+   // Ubah dari: $app = require_once __DIR__.'/../bootstrap/app.php';
+   // Menjadi:
+   $app = require_once __DIR__.'/../laravel_core/bootstrap/app.php';
    ```
+6. Sesuaikan konfigurasi database dan environment di file `.env` yang berada di dalam `laravel_core`.
 
-6. **Permission Folder**
-```bash
-chmod -R 755 /home/username/laravel_app/storage
-chmod -R 755 /home/username/laravel_app/bootstrap/cache
-```
+---
 
-7. **Optimasi**
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+### 🔗 3. Setup Storage Link (Menampilkan Gambar/File)
+Agar gambar profil atau file lain bisa diakses publik, buat symbolic link storage.
+Jika tidak bisa menggunakan command line / SSH, Anda bisa membuat symlink menggunakan route atau cron job.
+
+**Alternatif: Route Symlink (Tambahkan di `routes/web.php` untuk sementara):**
+```php
+Route::get('/create-symlink', function () {
+    $targetFolder = $_SERVER['DOCUMENT_ROOT'].'/../laravel_core/storage/app/public';
+    $linkFolder = $_SERVER['DOCUMENT_ROOT'].'/storage';
+    symlink($targetFolder, $linkFolder);
+    return 'Symlink created successfully';
+});
 ```
+*Akses `https://domain-anda.com/create-symlink`, lalu hapus kembali route tersebut setelah berhasil.*
+
+### 🔑 4. Permission Folder
+Pastikan direktori ini memiliki permission `775` (atau dapat ditulis):
+- `/storage` dan subfoldernya
+- `/bootstrap/cache`
 
 ## 🔧 Integrasi RFID Reader
 

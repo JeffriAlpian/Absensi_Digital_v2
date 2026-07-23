@@ -212,6 +212,9 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <button type="button" onclick="openEditModal({{ $ks->id }}, '{{ $ks->uid }}')" class="text-blue-500 hover:text-blue-700 transition-colors mr-3" title="Edit">
+                                                    <i class="fa-solid fa-pen-to-square text-lg"></i>
+                                                </button>
                                                 <form action="{{ route('kartu.destroy', $ks->id) }}" method="POST"
                                                     onsubmit="return confirm('Hapus kartu milik {{ $ks->siswa->nama ?? '' }}?');"
                                                     class="inline-block">
@@ -269,6 +272,9 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <button type="button" onclick="openEditModal({{ $kg->id }}, '{{ $kg->uid }}')" class="text-blue-500 hover:text-blue-700 transition-colors mr-3" title="Edit">
+                                                    <i class="fa-solid fa-pen-to-square text-lg"></i>
+                                                </button>
                                                 <form action="{{ route('kartu.destroy', $kg->id) }}" method="POST"
                                                     onsubmit="return confirm('Hapus kartu milik {{ $kg->guru->nama ?? '' }}?');"
                                                     class="inline-block">
@@ -292,6 +298,35 @@
                 </div>
             </div>
         </div>
+        </div>
+    </div>
+
+    {{-- Modal Edit UID --}}
+    <div id="editModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <i class="fa-solid fa-id-card text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4 mb-2">Edit UID Kartu</h3>
+                <form id="editForm" method="POST" action="" class="mt-4">
+                    @csrf
+                    @method('PUT')
+                    <div class="mb-4 text-left">
+                        <label for="edit_uid" class="block text-sm font-medium text-gray-700 mb-2">UID Kartu Baru</label>
+                        <input type="text" id="edit_uid" name="uid" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 py-2 px-3 bg-gray-50" required autocomplete="off">
+                    </div>
+                    <div class="mt-6 sm:flex sm:flex-row-reverse text-right">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Simpan
+                        </button>
+                        <button type="button" onclick="closeEditModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -309,6 +344,19 @@
                 selectGuru.addEventListener('change', () => rfidGuru.focus());
             }
         });
+
+        function openEditModal(id, uid) {
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('edit_uid').value = uid;
+            document.getElementById('editForm').action = "{{ url('kartu') }}/" + id;
+            setTimeout(() => {
+                document.getElementById('edit_uid').focus();
+            }, 100);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
     </script>
 
 @endsection

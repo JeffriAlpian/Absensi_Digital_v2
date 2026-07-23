@@ -22,17 +22,17 @@
 // =============================
 // 🔹 PIN KONFIGURASI
 // =============================
-#define SS_RFID D8    // Pin SDA/CS RFID pindah ke D8 (Wajib tambah resistor 10k dari D8 ke GND di hardware)
-#define RST_RFID D4   // Pin RST RFID pindah ke D4 (Aman)
-#define SS_SD D0      // Pin CS SD Card pindah ke D0 (Aman, tidak mengganggu booting)
-#define SDA_PIN D2    // Tetap (I2C)
-#define SCL_PIN D1    // Tetap (I2C)
-#define BUZZER_PIN D3 // Pin Buzzer pindah ke D3 (Buzzer akan bunyi "tit" pelan saat baru nyala, ini normal)
+#define SS_RFID D4     
+#define RST_RFID D3    
+#define SS_SD D8       
+#define SDA_PIN D2     
+#define SCL_PIN D1     
+#define BUZZER_PIN D0  
 
 // =============================
 // 🔹 KONFIGURASI ACCESS POINT
 // =============================
-const char *apSSID = "Konfigurasi_Absen_003";
+const char *apSSID = "Konfigurasi_Absen_Antena";
 const char *apPASS = NULL;
 
 // =============================
@@ -224,6 +224,15 @@ bool checkInternetConnection() {
   return internetAvailable;
 }
 
+String handleScanEndpoint() {
+  return getWifiScanHTML();
+}
+
+void handleScanRoute() {
+  server.send(200, "text/html", getWifiScanHTML());
+}
+
+
 // =========================
 // ⚙️ FUNGSI SIMPAN/BACA EEPROM
 // =========================
@@ -256,19 +265,31 @@ String getCurrentDate() {
     sprintf(dateStr, "%04d-%02d-%02d", now.year(), now.month(), now.day());
     return String(dateStr);
   }
-  return "1970-01-01";
+  // JIKA RTC TIDAK ADA, GUNAKAN NTP
+  else if (wifiConnected && internetAvailable) {
+    timeClient.update();
+    unsigned long epochTime = timeClient.getEpochTime();
+    DateTime ntpTime(epochTime);
+    char dateStr[11];
+    sprintf(dateStr, "%04d-%02d-%02d", ntpTime.year(), ntpTime.month(), ntpTime.day());
+    return String(dateStr);
+  }
+  return "1970-01-01";  // Fallback terakhir
 }
 
 String getCurrentTime() {
   if (rtcAvailable) {
     DateTime now = rtc.now();
-    uint8_t hour = now.hour();
-    if (hour >= 24) hour -= 24;
     char timeStr[9];
-    sprintf(timeStr, "%02d:%02d:%02d", hour, now.minute(), now.second());
+    sprintf(timeStr, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
     return String(timeStr);
   }
-  return "00:00:00";
+  // JIKA RTC TIDAK ADA, GUNAKAN NTP
+  else if (wifiConnected && internetAvailable) {
+    timeClient.update();
+    return timeClient.getFormattedTime();
+  }
+  return "00:00:00";  // Fallback terakhir
 }
 
 // =========================
@@ -391,6 +412,69 @@ void sendErrorLog(String errorMsg, String uid) {
 }
 
 // =========================
+// 📡 SCAN WIFI NETWORKS
+// =========================
+String getWifiScanHTML() {
+  int n = WiFi.scanNetworks();
+  String html = "";
+
+  if (n == 0) {
+    html = "<p>Tidak ada jaringan WiFi ditemukan.</p>";
+  } else {
+    html += "<table style='width:100%;border-collapse:collapse;margin-top:10px;'>";
+    html += "<tr style='background:#007bff;color:white;'>";
+    html += "<th style='padding:8px;text-align:left;'>SSID</th>";
+    html += "<th style='padding:8px;text-align:center;'>Keamanan</th>";
+    html += "<th style='padding:8px;text-align:center;'>Sinyal</th>";
+    html += "<th style='padding:8px;text-align:center;'>Kekuatan</th>";
+    html += "</tr>";
+
+    for (int i = 0; i < n; i++) {
+      int rssi = WiFi.RSSI(i);
+      String ssidName = WiFi.SSID(i);
+      String enc = (WiFi.encryptionType(i) == ENC_TYPE_NONE) ? "Open" : "🔒";
+
+      // Konversi RSSI ke persentase kekuatan sinyal
+      int strength = 0;
+      if (rssi >= -50) strength = 100;
+      else if (rssi >= -60) strength = 80;
+      else if (rssi >= -70) strength = 60;
+      else if (rssi >= -80) strength = 40;
+      else if (rssi >= -90) strength = 20;
+      else strength = 5;
+
+      // Warna bar berdasarkan kekuatan
+      String barColor = "#dc3545";                    // merah
+      if (strength >= 80) barColor = "#28a745";       // hijau
+      else if (strength >= 60) barColor = "#ffc107";  // kuning
+      else if (strength >= 40) barColor = "#fd7e14";  // oranye
+
+      // Warna baris tabel
+      String rowBg = (i % 2 == 0) ? "#f8f9fa" : "#ffffff";
+
+      html += "<tr style='background:" + rowBg + ";cursor:pointer;' onclick=\"document.getElementById('ssid').value='" + ssidName + "'\">";
+      html += "<td style='padding:8px;'>" + ssidName + "</td>";
+      html += "<td style='padding:8px;text-align:center;'>" + enc + "</td>";
+      html += "<td style='padding:8px;text-align:center;font-family:monospace;'>" + String(rssi) + " dBm</td>";
+      html += "<td style='padding:8px;'>";
+      html += "<div style='background:#e9ecef;border-radius:4px;height:18px;width:100%;'>";
+      html += "<div style='background:" + barColor + ";width:" + String(strength) + "%;height:18px;border-radius:4px;transition:width 0.3s;'></div>";
+      html += "</div>";
+      html += "<small style='color:#666;'>" + String(strength) + "%</small>";
+      html += "</td>";
+      html += "</tr>";
+    }
+
+    html += "</table>";
+    html += "<small style='color:#888;display:block;margin-top:6px;'>💡 Klik baris untuk pilih jaringan</small>";
+  }
+
+  WiFi.scanDelete();
+  return html;
+}
+
+
+// =========================
 // 🌐 HALAMAN WEB KONFIGURASI
 // =========================
 void handleRoot() {
@@ -429,7 +513,43 @@ void handleRoot() {
 
   html += F(R"(
   </div>
-  
+
+  <div style='margin-bottom:20px;'>
+    <div style='display:flex;justify-content:space-between;align-items:center;'>
+      <strong>Jaringan WiFi Tersedia:</strong>
+      <button type='button' onclick='scanWifi()' id='scanBtn'
+        style='background:#17a2b8;color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:13px;'>
+        Scan
+      </button>
+    </div>
+    <div id='wifiList' style='margin-top:8px;'>
+      <p style='color:#888;font-size:13px;'>Klik tombol Scan untuk mencari WiFi...</p>
+    </div>
+  </div>
+
+  <script>
+  function scanWifi() {
+    var btn = document.getElementById('scanBtn');
+    btn.disabled = true;
+    btn.innerText = 'Scanning...';
+    document.getElementById('wifiList').innerHTML = '<p style="color:#888;font-size:13px;">Sedang scan jaringan...</p>';
+    fetch('/scan')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('wifiList').innerHTML = html;
+        btn.disabled = false;
+        btn.innerText = 'Scan';
+      })
+      .catch(() => {
+        document.getElementById('wifiList').innerHTML = '<p style="color:red;">Gagal scan WiFi</p>';
+        btn.disabled = false;
+        btn.innerText = 'Scan';
+      });
+  }
+  </script>
+)");
+
+html += F(R"(
   <form action='/save' method='POST'>
    <label for='ssid'>SSID WiFi:</label>
    <input type='text' id='ssid' name='ssid' value=')");
@@ -537,6 +657,7 @@ void startAPConfig() {
   dnsServer.start(53, "*", IP);
   server.on("/", handleRoot);
   server.on("/save", HTTP_POST, handleSave);
+  server.on("/scan", handleScanRoute);   // ← TAMBAHKAN INI
   server.onNotFound(handleRoot);
   server.begin();
 }
@@ -665,6 +786,11 @@ void loop() {
     server.handleClient();
     dnsServer.processNextRequest();
     return;
+  }
+
+  // Tambahkan ini agar NTP selalu update waktunya dari internet
+  if (wifiConnected && internetAvailable) {
+    timeClient.update();
   }
 
   // Cek jika perlu kembali ke Ready to Scan
