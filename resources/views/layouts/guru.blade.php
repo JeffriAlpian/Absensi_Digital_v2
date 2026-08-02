@@ -31,9 +31,9 @@
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 dark:bg-[#121212] text-gray-800 dark:text-white">
 
-    <main class="w-full max-w-md mx-auto min-h-screen relative pb-24 bg-gray-50 shadow-2xl overflow-hidden">
+    <main class="w-full max-w-md mx-auto min-h-screen relative pb-24 bg-gray-50 dark:bg-[#121212] shadow-2xl overflow-hidden">
         @yield('content')
     </main>
 

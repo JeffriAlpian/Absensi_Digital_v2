@@ -21,17 +21,17 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 border-b pb-2">
                 <i class="fa-solid fa-user-graduate mr-2 text-green-600"></i>Import Siswa
             </h3>
             
             <form action="{{ route('import.excel.siswa') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">File Excel Siswa</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">File Excel Siswa</label>
                     <input type="file" name="file_excel" required accept=".xlsx, .xls"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                        class="block w-full text-sm text-gray-500 dark:text-[#A7A7A7] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
                 </div>
                 
                 <div class="flex justify-between items-center">
@@ -44,22 +44,22 @@
                 </div>
             </form>
             
-            <div class="mt-4 text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            <div class="mt-4 text-xs text-gray-500 dark:text-[#A7A7A7] bg-gray-50 dark:bg-[#121212] p-2 rounded">
                 <p><strong>Kolom:</strong> NIS | NISN | Nama | Tempat Lahir | Tgl Lahir | Kelas | No WA</p>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 border-b pb-2">
                 <i class="fa-solid fa-chalkboard-user mr-2 text-blue-600"></i>Import Guru
             </h3>
             
             <form action="{{ route('import.excel.guru') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">File Excel Guru</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">File Excel Guru</label>
                     <input type="file" name="file_excel" required accept=".xlsx, .xls"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        class="block w-full text-sm text-gray-500 dark:text-[#A7A7A7] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
 
                 <div class="flex justify-between items-center">
@@ -72,7 +72,7 @@
                 </div>
             </form>
 
-            <div class="mt-4 text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            <div class="mt-4 text-xs text-gray-500 dark:text-[#A7A7A7] bg-gray-50 dark:bg-[#121212] p-2 rounded">
                 <p><strong>Kolom:</strong> NIP | Nama | Jabatan | No WA | Mapel</p>
             </div>
         </div>

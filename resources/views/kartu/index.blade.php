@@ -54,7 +54,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {{-- Form Registrasi Siswa --}}
-            <div class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
+            <div class="bg-white dark:bg-[#181818] dark:text-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
                 <div class="bg-blue-600 text-white px-6 py-4 flex items-center">
                     <i class="fa-solid fa-user-graduate mr-3 text-lg"></i>
                     <h5 class="text-lg font-semibold">Registrasi Siswa</h5>
@@ -65,10 +65,10 @@
                         <input type="hidden" name="tipe" value="siswa">
 
                         <div class="mb-5">
-                            <label for="selectSiswa" class="block text-sm font-medium text-gray-700 mb-2">Pilih
+                            <label for="selectSiswa" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Pilih
                                 Siswa</label>
                             <select
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50"
+                                class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50 dark:bg-[#121212]"
                                 id="selectSiswa" name="user_id" required>
                                 <option value="" selected disabled>... Pilih Nama Siswa ...</option>
                                 @foreach ($siswa_belum_ada_kartu as $s)
@@ -78,10 +78,10 @@
                         </div>
 
                         <div class="mb-5">
-                            <label for="selectDevice" class="block text-sm font-medium text-gray-700 mb-2">Pilih
+                            <label for="selectDevice" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Pilih
                                 Device</label>
                             <select
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50"
+                                class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50 dark:bg-[#121212]"
                                 id="selectDevice" name="device_id" required>
                                 <option value="" selected disabled>... Pilih Device ...</option>
                                 @foreach ($device_models as $d)
@@ -92,10 +92,10 @@
                         </div>
 
                         <div class="mb-6">
-                            <label for="rfidSiswa" class="block text-sm font-medium text-gray-700 mb-2">Tempelkan Kartu
+                            <label for="rfidSiswa" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Tempelkan Kartu
                                 RFID</label>
                             <input type="text"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-3 px-4 text-lg bg-gray-50"
+                                class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-3 px-4 text-lg bg-gray-50 dark:bg-[#121212]"
                                 id="rfidSiswa" name="uid" placeholder="Scan Kartu..." required autocomplete="off">
                         </div>
 
@@ -110,7 +110,7 @@
             </div>
 
             {{-- Form Registrasi Guru --}}
-            <div class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
+            <div class="bg-white dark:bg-[#181818] dark:text-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
                 <div class="bg-teal-500 text-white px-6 py-4 flex items-center">
                     <i class="fa-solid fa-chalkboard-user mr-3 text-lg"></i>
                     <h5 class="text-lg font-semibold">Registrasi Guru</h5>
@@ -121,9 +121,9 @@
                         <input type="hidden" name="tipe" value="guru">
 
                         <div class="mb-5">
-                            <label for="selectGuru" class="block text-sm font-medium text-gray-700 mb-2">Pilih Guru</label>
+                            <label for="selectGuru" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Pilih Guru</label>
                             <select
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50"
+                                class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50 dark:bg-[#121212]"
                                 id="selectGuru" name="user_id" required>
                                 <option value="" selected disabled>... Pilih Nama Guru ...</option>
                                 @foreach ($guru_belum_ada_kartu as $g)
@@ -133,10 +133,10 @@
                         </div>
 
                         <div class="mb-5">
-                            <label for="selectDevice" class="block text-sm font-medium text-gray-700 mb-2">Pilih
+                            <label for="selectDevice" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Pilih
                                 Device</label>
                             <select
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50"
+                                class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2 px-3 bg-gray-50 dark:bg-[#121212]"
                                 id="selectDevice" name="device_id" required>
                                 <option value="" selected disabled>... Pilih Device ...</option>
                                 @foreach ($device_models as $d)
@@ -147,10 +147,10 @@
                         </div>
 
                         <div class="mb-6">
-                            <label for="rfidGuru" class="block text-sm font-medium text-gray-700 mb-2">Tempelkan Kartu
+                            <label for="rfidGuru" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Tempelkan Kartu
                                 RFID</label>
                             <input type="text"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 focus:ring-opacity-50 py-3 px-4 text-lg bg-gray-50"
+                                class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-200 focus:ring-opacity-50 py-3 px-4 text-lg bg-gray-50 dark:bg-[#121212]"
                                 id="rfidGuru" name="uid" placeholder="Scan Kartu..." required autocomplete="off">
                         </div>
 
@@ -167,47 +167,47 @@
     </div>
 
     {{-- Daftar Kartu Terdaftar --}}
-    <div class="bg-gray-50 py-10 border-t border-gray-200">
+    <div class="bg-gray-50 dark:bg-[#121212] py-10 border-t border-gray-200 dark:border-[#282828]">
         <div class="container mx-auto px-4">
-            <header class="mb-6 border-b border-gray-200 pb-4">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                    <i class="fa-solid fa-list mr-3 text-gray-500"></i> Daftar Kartu RFID Terdaftar
+            <header class="mb-6 border-b border-gray-200 dark:border-[#282828] pb-4">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center">
+                    <i class="fa-solid fa-list mr-3 text-gray-500 dark:text-[#A7A7A7]"></i> Daftar Kartu RFID Terdaftar
                 </h2>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {{-- Tabel Siswa --}}
-                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-white dark:bg-[#181818] dark:text-white rounded-xl shadow-md overflow-hidden">
                     <div class="bg-gray-700 text-white px-6 py-3">
                         <h5 class="font-semibold">Kartu RFID Siswa</h5>
                     </div>
                     <div class="overflow-x-auto">
                         @if ($kartu_siswa->count() > 0)
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                                <thead class="bg-gray-100 dark:bg-[#282828]">
                                     <tr>
                                         <th scope="col"
-                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                             Nama</th>
                                         <th scope="col"
-                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                             UID</th>
                                         <th scope="col"
-                                            class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                             Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                                     @foreach ($kartu_siswa as $ks)
-                                        <tr class="hover:bg-gray-50 transition-colors">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition-colors">
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-gray-900">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">
                                                     {{ $ks->siswa->nama ?? 'Siswa Terhapus' }}</div>
-                                                <div class="text-sm text-gray-500">{{ $ks->siswa->nisn ?? '-' }}</div>
+                                                <div class="text-sm text-gray-500 dark:text-[#A7A7A7]">{{ $ks->siswa->nisn ?? '-' }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span
-                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-800 border border-gray-300">
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 dark:bg-[#333333] text-gray-800 dark:text-white border border-gray-300 dark:border-[#333333]">
                                                     {{ $ks->uid }}
                                                 </span>
                                             </td>
@@ -238,36 +238,36 @@
                 </div>
 
                 {{-- Tabel Guru --}}
-                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-white dark:bg-[#181818] dark:text-white rounded-xl shadow-md overflow-hidden">
                     <div class="bg-gray-700 text-white px-6 py-3">
                         <h5 class="font-semibold">Kartu RFID Guru</h5>
                     </div>
                     <div class="overflow-x-auto">
                         @if ($kartu_guru->count() > 0)
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                                <thead class="bg-gray-100 dark:bg-[#282828]">
                                     <tr>
                                         <th scope="col"
-                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                             Nama</th>
                                         <th scope="col"
-                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                             UID</th>
                                         <th scope="col"
-                                            class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                             Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                                     @foreach ($kartu_guru as $kg)
-                                        <tr class="hover:bg-gray-50 transition-colors">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition-colors">
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-gray-900">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">
                                                     {{ $kg->guru->nama ?? 'Guru Terhapus' }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span
-                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-800 border border-gray-300">
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 dark:bg-[#333333] text-gray-800 dark:text-white border border-gray-300 dark:border-[#333333]">
                                                     {{ $kg->uid }}
                                                 </span>
                                             </td>
@@ -298,29 +298,28 @@
                 </div>
             </div>
         </div>
-        </div>
     </div>
 
     {{-- Modal Edit UID --}}
     <div id="editModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-        <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-[#181818] dark:text-white">
             <div class="mt-3 text-center">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
                     <i class="fa-solid fa-id-card text-blue-600 text-xl"></i>
                 </div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4 mb-2">Edit UID Kartu</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mt-4 mb-2">Edit UID Kartu</h3>
                 <form id="editForm" method="POST" action="" class="mt-4">
                     @csrf
                     @method('PUT')
                     <div class="mb-4 text-left">
-                        <label for="edit_uid" class="block text-sm font-medium text-gray-700 mb-2">UID Kartu Baru</label>
-                        <input type="text" id="edit_uid" name="uid" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 py-2 px-3 bg-gray-50" required autocomplete="off">
+                        <label for="edit_uid" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">UID Kartu Baru</label>
+                        <input type="text" id="edit_uid" name="uid" class="w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 py-2 px-3 bg-gray-50 dark:bg-[#121212]" required autocomplete="off">
                     </div>
                     <div class="mt-6 sm:flex sm:flex-row-reverse text-right">
                         <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
                             Simpan
                         </button>
-                        <button type="button" onclick="closeEditModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="button" onclick="closeEditModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-[#333333] shadow-sm px-4 py-2 bg-white dark:bg-[#181818] dark:text-white text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Batal
                         </button>
                     </div>

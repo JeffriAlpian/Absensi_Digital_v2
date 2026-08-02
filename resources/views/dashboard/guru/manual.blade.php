@@ -33,14 +33,14 @@
                 </div>
             @endif
 
-            <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <div class="bg-white dark:bg-[#181818] dark:text-white shadow-md rounded-lg p-6 mb-6">
                 
                 {{-- Judul Kelas --}}
                 <div class="mb-6 border-b pb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
                         Absensi Kelas: <span class="text-indigo-600">{{ $listKelas->first()->nama_kelas ?? 'Tidak diketahui' }}</span>
                     </h2>
-                    <p class="text-sm text-gray-500 mt-1">Anda hanya dapat mengelola absensi untuk kelas yang Anda ampu.</p>
+                    <p class="text-sm text-gray-500 dark:text-[#A7A7A7] mt-1">Anda hanya dapat mengelola absensi untuk kelas yang Anda ampu.</p>
                 </div>
 
                 <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
@@ -51,18 +51,18 @@
 
                         {{-- Filter Tanggal --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tanggal</label>
                             <input type="date" name="tanggal" value="{{ $tanggal }}"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                                class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
                         </div>
 
                         {{-- FILTER KELAS DIHAPUS KARENA SUDAH DIKUNCI DI CONTROLLER --}}
 
                         {{-- Filter Status --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Absen</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status Absen</label>
                             <select name="status"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white">
+                                class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white dark:bg-[#181818] dark:text-white">
                                 <option value="">-- Semua Status --</option>
                                 <option value="belum_absen" {{ $statusFilter == 'belum_absen' ? 'selected' : '' }}>Belum Absen
                                 </option>
@@ -83,37 +83,37 @@
                 </div>
 
                 <div class="overflow-x-auto border rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                        <thead class="bg-gray-50 dark:bg-[#121212]">
                             <tr>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                     Nama</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                     NISN</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                     Kelas</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider w-24">
                                     Status</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                     Keterangan</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider w-24">
                                     Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                             @forelse($dataList as $item)
                                 @php
                                     // Mengambil relasi absensi
                                     $absen = $item->absensi->first();
                                     $status = $absen->status ?? '';
                                     $ket = $absen->keterangan ?? '';
-                                    $rowClass = $absen ? 'bg-green-50' : 'hover:bg-gray-50';
+                                    $rowClass = $absen ? 'bg-green-50' : 'hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212]';
                                 @endphp
                                 <tr class="{{ $rowClass }} transition">
                                     <form method="POST" action="{{ route('absensi.manual.storeManual') }}">
@@ -123,21 +123,21 @@
                                         <input type="hidden" name="tanggal" value="{{ $tanggal }}">
                                         <input type="hidden" name="kelas_filter" value="{{ $kelasId }}">
 
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                             {{ $item->nis }}
                                         </td>
 
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                             {{ $item->nama }}
                                         </td>
 
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-[#A7A7A7]">
                                             {{ optional($item->kelas)->nama_kelas }}
                                         </td>
 
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <select name="status"
-                                                class="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 bg-white">
+                                                class="block w-full text-sm rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 bg-white dark:bg-[#181818] dark:text-white">
                                                 <option value="" disabled {{ $status == '' ? 'selected' : '' }}>-
                                                 </option>
                                                 <option value="H" {{ $status == 'H' ? 'selected' : '' }}>H</option>
@@ -149,7 +149,7 @@
                                         
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <input type="text" name="keterangan" value="{{ $ket }}"
-                                                class="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 px-2"
+                                                class="block w-full text-sm rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 px-2"
                                                 placeholder="Ket. tambahan">
                                         </td>
                                         
@@ -164,7 +164,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                    <td colspan="6" class="px-6 py-10 text-center text-gray-500 dark:text-[#A7A7A7]">
                                         ❌ Tidak ada data Siswa ditemukan di kelas ini.
                                     </td>
                                 </tr>

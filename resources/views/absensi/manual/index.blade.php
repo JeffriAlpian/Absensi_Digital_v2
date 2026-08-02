@@ -21,7 +21,7 @@
             </div>
         @endif
 
-        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div class="bg-white dark:bg-[#181818] dark:text-white shadow-md rounded-lg p-6 mb-6">
 
             <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
 
@@ -31,16 +31,16 @@
 
                     {{-- Filter Tanggal --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tanggal</label>
                         <input type="date" name="tanggal" value="{{ $tanggal }}"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                            class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
                     </div>
 
                     {{-- Filter Kategori (BARU) --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Kategori</label>
                         <select name="kategori" id="kategoriSelect" onchange="this.form.submit()"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white min-w-[120px]">
+                            class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white dark:bg-[#181818] dark:text-white min-w-[120px]">
                             <option value="siswa" {{ $kategori == 'siswa' ? 'selected' : '' }}>Siswa</option>
                             <option value="guru" {{ $kategori == 'guru' ? 'selected' : '' }}>Guru</option>
                         </select>
@@ -49,9 +49,9 @@
                     {{-- Filter Kelas (Hanya muncul jika Kategori = Siswa) --}}
                     @if ($kategori == 'siswa')
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Kelas</label>
                             <select name="kelas"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white">
+                                class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white dark:bg-[#181818] dark:text-white">
                                 <option value="">Semua Kelas</option>
                                 @foreach ($listKelas as $k)
                                     <option value="{{ $k->id }}" {{ $kelasId == $k->id ? 'selected' : '' }}>
@@ -64,7 +64,7 @@
                     
                     <div>
                         <select name="status"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white">
+                            class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white dark:bg-[#181818] dark:text-white">
                             <option value="">-- Semua Status --</option>
                             <option value="belum_absen" {{ $statusFilter == 'belum_absen' ? 'selected' : '' }}>Belum Absen
                             </option>
@@ -97,49 +97,49 @@
             </div>
 
             <div class="overflow-x-auto border rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                    <thead class="bg-gray-50 dark:bg-[#121212]">
                         <tr>
                             {{-- Header Dinamis --}}
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                 {{ $kategori == 'siswa' ? 'NIS' : 'NIP / Kode' }}
                             </th>
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                 Nama {{ ucfirst($kategori) }}
                             </th>
 
                             {{-- Kolom Kelas hanya untuk Siswa --}}
                             @if ($kategori == 'siswa')
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                     Kelas</th>
                             @else
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                     Jabatan</th>
                             @endif
 
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider w-24">
                                 Status</th>
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">
                                 Keterangan</th>
                             <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider w-24">
                                 Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                         @forelse($dataList as $item)
                             @php
                                 // Mengambil relasi absensi (asumsi nama relasi di model Siswa & Guru sama: 'absensi')
                                 $absen = $item->absensi->first();
                                 $status = $absen->status ?? '';
                                 $ket = $absen->keterangan ?? '';
-                                $rowClass = $absen ? 'bg-green-50' : 'hover:bg-gray-50';
+                                $rowClass = $absen ? 'bg-green-50' : 'hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212]';
 
                                 // Menentukan ID dan Nama Field input
                                 $inputNameId = $kategori == 'siswa' ? 'siswa_id' : 'guru_id';
@@ -154,27 +154,27 @@
                                     <input type="hidden" name="tanggal" value="{{ $tanggal }}">
                                     <input type="hidden" name="kelas_filter" value="{{ $kelasId }}">
 
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                         {{ $kategori == 'siswa' ? $item->nis : $item->nip ?? ($item->kode_guru ?? '-') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                         {{ $item->nama ?? $item->nama_guru }}
                                     </td>
 
                                     {{-- Kolom Dinamis (Kelas / Jabatan) --}}
                                     @if ($kategori == 'siswa')
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-[#A7A7A7]">
                                             {{ optional($item->kelas)->nama_kelas }}
                                         </td>
                                     @else
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-[#A7A7A7]">
                                             {{ $item->jabatan ?? 'Guru Mapel' }}
                                         </td>
                                     @endif
 
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <select name="status"
-                                            class="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 bg-white">
+                                            class="block w-full text-sm rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 bg-white dark:bg-[#181818] dark:text-white">
                                             <option value="" disabled {{ $status == '' ? 'selected' : '' }}>-
                                             </option>
                                             <option value="H" {{ $status == 'H' ? 'selected' : '' }}>H</option>
@@ -185,7 +185,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <input type="text" name="keterangan" value="{{ $ket }}"
-                                            class="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 px-2"
+                                            class="block w-full text-sm rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-1 px-2"
                                             placeholder="Ket. tambahan">
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -200,7 +200,7 @@
                         @empty
                             <tr>
                                 <td colspan="{{ $kategori == 'siswa' ? '6' : '6' }}"
-                                    class="px-6 py-10 text-center text-gray-500">
+                                    class="px-6 py-10 text-center text-gray-500 dark:text-[#A7A7A7]">
                                     ❌ Tidak ada data {{ $kategori }} ditemukan.
                                 </td>
                             </tr>

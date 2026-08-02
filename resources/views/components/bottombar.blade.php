@@ -1,5 +1,5 @@
 <nav class="fixed bottom-0 left-0 right-0 z-50">
-    <div class="max-w-md mx-auto bg-white border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] relative">
+    <div class="max-w-md mx-auto bg-white dark:bg-[#181818] dark:text-white border-t border-gray-200 dark:border-[#282828] shadow-[0_-5px_15px_rgba(0,0,0,0.05)] relative">
 
         <div class="flex justify-between items-end px-6 py-2">
 
@@ -34,7 +34,7 @@
                     class="w-10 h-10 bg-red-50 rounded-full shadow-sm flex items-center justify-center text-red-500">
                     <i class="fa-solid fa-power-off "></i>
                 </button>
-                <span class="text-[10px] text-gray-500">Logout</span>
+                <span class="text-[10px] text-gray-500 dark:text-[#A7A7A7]">Logout</span>
             </form>
 
         </div>

@@ -48,9 +48,9 @@
             </div>
         </form>
 
-        <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <div class="bg-white dark:bg-[#181818] dark:text-white rounded-lg shadow overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-gray-100">
+                <thead class="bg-gray-100 dark:bg-[#282828]">
                     <tr>
                         <th class="p-3">NIP</th>
                         <th class="p-3">Nama</th>
@@ -61,7 +61,7 @@
                 </thead>
                 <tbody>
                     @foreach ($data_guru as $guru)
-                        <tr class="border-b hover:bg-gray-50">
+                        <tr class="border-b hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212]">
                             <td class="p-3">{{ $guru->nip }}</td>
                             <td class="p-3">
                                 <div class="font-bold">{{ $guru->nama }}</div>

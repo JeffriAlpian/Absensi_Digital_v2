@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold text-gray-800">Data Wali Kelas</h2>
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Data Wali Kelas</h2>
         <a href="{{ route('wakel.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             + Tambah/Tugaskan Wakel
         </a>
@@ -15,21 +15,21 @@
         </div>
     @endif
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    <div class="bg-white dark:bg-[#181818] dark:text-white shadow overflow-hidden sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+            <thead class="bg-gray-50 dark:bg-[#121212]">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wali Kelas</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">No</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">Kelas</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">Wali Kelas</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                 @forelse($wakelList as $index => $wakel)
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $wakel->kelas->nama_kelas ?? 'Kelas Tidak Ditemukan' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-[#A7A7A7]">{{ $index + 1 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $wakel->kelas->nama_kelas ?? 'Kelas Tidak Ditemukan' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
                             {{ $wakel->guru->nama ?? 'Guru Tidak Ditemukan' }}
                         </td>

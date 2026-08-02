@@ -10,8 +10,8 @@
 
         <div class="mb-6 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800">Pengaturan</h2>
-                <p class="text-gray-600 text-sm">Kelola profil, sistem, dan database aplikasi.</p>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Pengaturan</h2>
+                <p class="text-gray-600 dark:text-[#A7A7A7] text-sm">Kelola profil, sistem, dan database aplikasi.</p>
             </div>
         </div>
 
@@ -36,12 +36,12 @@
         @endif
 
         {{-- TAB NAVIGATION --}}
-        <div class="bg-white rounded-t-xl shadow-sm border-b border-gray-200">
-            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
+        <div class="bg-white dark:bg-[#181818] dark:text-white rounded-t-xl shadow-sm border-b border-gray-200 dark:border-[#282828]">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-[#A7A7A7]">
                 <li class="mr-2">
                     <button @click="activeTab = 'profil'"
                         :class="activeTab === 'profil' ? 'text-blue-600 border-blue-600 bg-blue-50' :
-                            'border-transparent hover:text-gray-600 hover:border-gray-300'"
+                            'border-transparent hover:text-gray-600 dark:text-[#A7A7A7] hover:border-gray-300 dark:border-[#333333]'"
                         class="inline-block p-4 border-b-2 rounded-t-lg group transition-all flex items-center">
                         <i class="fa-solid fa-school mr-2 text-lg"></i> Profil Sekolah
                     </button>
@@ -49,7 +49,7 @@
                 <li class="mr-2">
                     <button @click="activeTab = 'backup'"
                         :class="activeTab === 'backup' ? 'text-blue-600 border-blue-600 bg-blue-50' :
-                            'border-transparent hover:text-gray-600 hover:border-gray-300'"
+                            'border-transparent hover:text-gray-600 dark:text-[#A7A7A7] hover:border-gray-300 dark:border-[#333333]'"
                         class="inline-block p-4 border-b-2 rounded-t-lg group transition-all flex items-center">
                         <i class="fa-solid fa-database mr-2 text-lg"></i> Backup & Restore
                     </button>
@@ -57,7 +57,7 @@
                 <li class="mr-2">
                     <button @click="activeTab = 'info'"
                         :class="activeTab === 'info' ? 'text-blue-600 border-blue-600 bg-blue-50' :
-                            'border-transparent hover:text-gray-600 hover:border-gray-300'"
+                            'border-transparent hover:text-gray-600 dark:text-[#A7A7A7] hover:border-gray-300 dark:border-[#333333]'"
                         class="inline-block p-4 border-b-2 rounded-t-lg group transition-all flex items-center">
                         <i class="fa-solid fa-circle-info mr-2 text-lg"></i> Informasi Sistem
                     </button>
@@ -65,7 +65,7 @@
                 <li class="mr-2">
                     <button @click="activeTab = 'update'"
                         :class="activeTab === 'update' ? 'text-blue-600 border-blue-600 bg-blue-50' :
-                            'border-transparent hover:text-gray-600 hover:border-gray-300'"
+                            'border-transparent hover:text-gray-600 dark:text-[#A7A7A7] hover:border-gray-300 dark:border-[#333333]'"
                         class="inline-block p-4 border-b-2 rounded-t-lg group transition-all flex items-center">
                         <i class="fa-solid fa-cloud-arrow-down mr-2 text-lg"></i> Update Sistem
                     </button>
@@ -74,13 +74,13 @@
         </div>
 
         {{-- TAB CONTENT CONTAINER --}}
-        <div class="bg-white p-8 rounded-b-xl shadow-md min-h-[500px]">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-8 rounded-b-xl shadow-md min-h-[500px]">
 
             {{-- 1. KONTEN: PROFIL SEKOLAH --}}
             <div x-show="activeTab === 'profil'" x-transition.opacity>
                 <div class="border-b pb-4 mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Edit Profil Sekolah</h3>
-                    <p class="text-gray-500 text-sm">Data ini akan ditampilkan pada laporan dan kop surat.</p>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Edit Profil Sekolah</h3>
+                    <p class="text-gray-500 dark:text-[#A7A7A7] text-sm">Data ini akan ditampilkan pada laporan dan kop surat.</p>
                 </div>
 
                 <form action="{{ route('pengaturan.updateProfil') }}" method="POST" enctype="multipart/form-data">
@@ -91,73 +91,73 @@
                             <div class="text-center">
                                 @if ($profil->logo_sekolah)
                                     <img src="{{ asset('storage/' . $profil->logo_sekolah) }}"
-                                        class="h-32 w-32 object-contain border rounded-lg shadow-sm mx-auto mb-2 bg-gray-50">
+                                        class="h-32 w-32 object-contain border rounded-lg shadow-sm mx-auto mb-2 bg-gray-50 dark:bg-[#121212]">
                                 @else
                                     <div
-                                        class="h-32 w-32 flex items-center justify-center bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 mx-auto mb-2">
+                                        class="h-32 w-32 flex items-center justify-center bg-gray-100 dark:bg-[#282828] rounded-lg border-2 border-dashed border-gray-300 dark:border-[#333333] mx-auto mb-2">
                                         <span class="text-gray-400 text-xs">Belum ada logo</span>
                                     </div>
                                 @endif
                                 <label
-                                    class="cursor-pointer bg-white border border-gray-300 rounded-md py-1 px-3 text-sm font-medium hover:bg-gray-50">
-                                    <span class="text-gray-700">Ganti Logo</span>
+                                    class="cursor-pointer bg-white dark:bg-[#181818] dark:text-white border border-gray-300 dark:border-[#333333] rounded-md py-1 px-3 text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212]">
+                                    <span class="text-gray-700 dark:text-gray-200">Ganti Logo</span>
                                     <input type="file" name="logo_sekolah" class="hidden" accept="image/*">
                                 </label>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Sekolah</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Nama Sekolah</label>
                             <input type="text" name="nama_sekolah"
                                 value="{{ old('nama_sekolah', $profil->nama_sekolah) }}" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Alamat Lengkap</label>
                             <textarea name="alamat" rows="3"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ old('alamat', $profil->alamat_sekolah) }}</textarea>
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">{{ old('alamat', $profil->alamat_sekolah) }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Kepala Sekolah</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Nama Kepala Sekolah</label>
                             <input type="text" name="kepala_sekolah"
                                 value="{{ old('kepala_sekolah', $profil->kepala_sekolah) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">NIP Kepala Sekolah</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">NIP Kepala Sekolah</label>
                             <input type="text" name="nip_kepsek"
                                 value="{{ old('nip_kepsek', $profil->nip_kepala_sekolah) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Api Key WA</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Api Key WA</label>
                             <input type="text" name="api_key_wa" value="{{ old('api_key_wa', $profil->key_wa_sidobe) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp Kepsek/Wakur (Penerima
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">WhatsApp Kepsek/Wakur (Penerima
                                 Absen Guru)</label>
                             <input type="text" name="wakur_wa" value="{{ old('wakur_wa', $profil->wakur_wa) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Jam Masuk Guru</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Jam Masuk Guru</label>
                             <input type="time" name="jam_masuk_guru"
                                 value="{{ old('jam_masuk_guru', $profil->jam_masuk_guru) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Jam Pulang Guru</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Jam Pulang Guru</label>
                             <input type="time" name="jam_pulang_guru"
                                 value="{{ old('jam_pulang_guru', $profil->jam_pulang_guru) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div class="grid gap-6 mb-3">
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Libur Mingguan</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Libur Mingguan</label>
                                 <select name="hari_libur_mingguan"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-[#333333] rounded-lg focus:ring-blue-500 focus:border-blue-500">
                                     <option value="0"
                                         {{ old('hari_libur_mingguan', $profil->hari_libur_mingguan) == 0 ? 'selected' : '' }}>
                                         Minggu</option>
@@ -190,40 +190,40 @@
 
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Latitude</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-map-pin text-gray-400"></i>
                                     </div>
                                     <input type="text" id="latitude" name="latitude" value="{{ $lat }}"
                                         readonly
-                                        class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 text-gray-500 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 border">
+                                        class="pl-10 block w-full rounded-lg border-gray-300 dark:border-[#333333] bg-gray-50 dark:bg-[#121212] text-gray-500 dark:text-[#A7A7A7] focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 border">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Longitude</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-map-location-dot text-gray-400"></i>
                                     </div>
                                     <input type="text" id="longitude" name="longitude" value="{{ $long }}"
                                         readonly
-                                        class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 text-gray-500 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 border">
+                                        class="pl-10 block w-full rounded-lg border-gray-300 dark:border-[#333333] bg-gray-50 dark:bg-[#121212] text-gray-500 dark:text-[#A7A7A7] focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 border">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Radius (Meter)</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Radius (Meter)</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-circle-nodes text-gray-400"></i>
                                     </div>
                                     <input type="number" id="radius" name="radius" value="{{ $radius }}"
                                         oninput="updateCircleRadius()"
-                                        class="pl-10 block w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 border">
+                                        class="pl-10 block w-full rounded-lg border-gray-300 dark:border-[#333333] focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 border">
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-1">Jarak maksimal siswa bisa absen dari titik
+                                <p class="text-[10px] text-gray-500 dark:text-[#A7A7A7] mt-1">Jarak maksimal siswa bisa absen dari titik
                                     pusat.
                                 </p>
                             </div>
@@ -233,11 +233,11 @@
 
 
                         <div class="mb-6 relative">
-                            <div id="map" class="w-full h-[400px] rounded-xl border-2 border-gray-200 z-0">
+                            <div id="map" class="w-full h-[400px] rounded-xl border-2 border-gray-200 dark:border-[#282828] z-0">
                             </div>
 
                             <button type="button" onclick="getCurrentLocation()"
-                                class="absolute top-4 right-4 z-[400] bg-white text-indigo-600 px-4 py-2 rounded-lg shadow-md text-sm font-bold hover:bg-indigo-50 transition">
+                                class="absolute top-4 right-4 z-[400] bg-white dark:bg-[#181818] dark:text-white text-indigo-600 px-4 py-2 rounded-lg shadow-md text-sm font-bold hover:bg-indigo-50 transition">
                                 <i class="fa-solid fa-location-crosshairs mr-1"></i> Lokasi Saya
                             </button>
                         </div>
@@ -247,14 +247,14 @@
 
 
                         {{-- AREA DESAIN KARTU SISWA --}}
-                        <div class="md:col-span-2 mt-8 pt-6 border-t border-gray-200">
+                        <div class="md:col-span-2 mt-8 pt-6 border-t border-gray-200 dark:border-[#282828]">
                             <div class="flex items-center mb-4">
                                 <div class="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">
                                     <i class="fa-solid fa-user-graduate text-xl"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-lg font-bold text-gray-800">Desain Kartu Siswa</h4>
-                                    <p class="text-xs text-gray-500">Upload desain depan dan belakang untuk kartu pelajar.
+                                    <h4 class="text-lg font-bold text-gray-800 dark:text-white">Desain Kartu Siswa</h4>
+                                    <p class="text-xs text-gray-500 dark:text-[#A7A7A7]">Upload desain depan dan belakang untuk kartu pelajar.
                                     </p>
                                 </div>
                             </div>
@@ -263,16 +263,16 @@
                                 class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-xl border border-blue-100">
                                 {{-- Siswa Depan --}}
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2 text-center">Tampak
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 text-center">Tampak
                                         Depan</label>
                                     <div
-                                        class="border-2 border-dashed border-blue-300 rounded-lg p-4 text-center bg-white hover:bg-gray-50 transition relative group">
+                                        class="border-2 border-dashed border-blue-300 rounded-lg p-4 text-center bg-white dark:bg-[#181818] dark:text-white hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition relative group">
                                         @if ($profil->desain_kartu_siswa_depan)
                                             <img src="{{ asset('storage/' . $profil->desain_kartu_siswa_depan) }}"
                                                 class="h-40 mx-auto object-cover rounded shadow mb-2">
                                         @else
                                             <div
-                                                class="h-40 w-full bg-gray-100 flex items-center justify-center rounded mb-2 text-gray-400">
+                                                class="h-40 w-full bg-gray-100 dark:bg-[#282828] flex items-center justify-center rounded mb-2 text-gray-400">
                                                 <span class="text-xs">Kosong</span>
                                             </div>
                                         @endif
@@ -289,16 +289,16 @@
 
                                 {{-- Siswa Belakang --}}
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2 text-center">Tampak
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 text-center">Tampak
                                         Belakang</label>
                                     <div
-                                        class="border-2 border-dashed border-blue-300 rounded-lg p-4 text-center bg-white hover:bg-gray-50 transition relative">
+                                        class="border-2 border-dashed border-blue-300 rounded-lg p-4 text-center bg-white dark:bg-[#181818] dark:text-white hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition relative">
                                         @if ($profil->desain_kartu_siswa_belakang)
                                             <img src="{{ asset('storage/' . $profil->desain_kartu_siswa_belakang) }}"
                                                 class="h-40 mx-auto object-cover rounded shadow mb-2">
                                         @else
                                             <div
-                                                class="h-40 w-full bg-gray-100 flex items-center justify-center rounded mb-2 text-gray-400">
+                                                class="h-40 w-full bg-gray-100 dark:bg-[#282828] flex items-center justify-center rounded mb-2 text-gray-400">
                                                 <span class="text-xs">Kosong</span>
                                             </div>
                                         @endif
@@ -322,8 +322,8 @@
                                     <i class="fa-solid fa-chalkboard-user text-xl"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-lg font-bold text-gray-800">Desain Kartu Guru</h4>
-                                    <p class="text-xs text-gray-500">Upload desain depan dan belakang untuk kartu identitas
+                                    <h4 class="text-lg font-bold text-gray-800 dark:text-white">Desain Kartu Guru</h4>
+                                    <p class="text-xs text-gray-500 dark:text-[#A7A7A7]">Upload desain depan dan belakang untuk kartu identitas
                                         guru.</p>
                                 </div>
                             </div>
@@ -332,16 +332,16 @@
                                 class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-teal-50 p-6 rounded-xl border border-teal-100">
                                 {{-- Guru Depan --}}
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2 text-center">Tampak
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 text-center">Tampak
                                         Depan</label>
                                     <div
-                                        class="border-2 border-dashed border-teal-300 rounded-lg p-4 text-center bg-white hover:bg-gray-50 transition relative">
+                                        class="border-2 border-dashed border-teal-300 rounded-lg p-4 text-center bg-white dark:bg-[#181818] dark:text-white hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition relative">
                                         @if ($profil->desain_kartu_guru_depan)
                                             <img src="{{ asset('storage/' . $profil->desain_kartu_guru_depan) }}"
                                                 class="h-40 mx-auto object-cover rounded shadow mb-2">
                                         @else
                                             <div
-                                                class="h-40 w-full bg-gray-100 flex items-center justify-center rounded mb-2 text-gray-400">
+                                                class="h-40 w-full bg-gray-100 dark:bg-[#282828] flex items-center justify-center rounded mb-2 text-gray-400">
                                                 <span class="text-xs">Kosong</span>
                                             </div>
                                         @endif
@@ -358,16 +358,16 @@
 
                                 {{-- Guru Belakang --}}
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2 text-center">Tampak
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 text-center">Tampak
                                         Belakang</label>
                                     <div
-                                        class="border-2 border-dashed border-teal-300 rounded-lg p-4 text-center bg-white hover:bg-gray-50 transition relative">
+                                        class="border-2 border-dashed border-teal-300 rounded-lg p-4 text-center bg-white dark:bg-[#181818] dark:text-white hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition relative">
                                         @if ($profil->desain_kartu_guru_belakang)
                                             <img src="{{ asset('storage/' . $profil->desain_kartu_guru_belakang) }}"
                                                 class="h-40 mx-auto object-cover rounded shadow mb-2">
                                         @else
                                             <div
-                                                class="h-40 w-full bg-gray-100 flex items-center justify-center rounded mb-2 text-gray-400">
+                                                class="h-40 w-full bg-gray-100 dark:bg-[#282828] flex items-center justify-center rounded mb-2 text-gray-400">
                                                 <span class="text-xs">Kosong</span>
                                             </div>
                                         @endif
@@ -400,8 +400,8 @@
             <div x-show="activeTab === 'backup'" style="display: none;" x-transition.opacity>
                 <div class="flex justify-between items-start border-b pb-4 mb-6">
                     <div>
-                        <h3 class="text-xl font-bold text-gray-800">Database Backup</h3>
-                        <p class="text-gray-500 text-sm">Buat cadangan database secara berkala untuk keamanan data.</p>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Database Backup</h3>
+                        <p class="text-gray-500 dark:text-[#A7A7A7] text-sm">Buat cadangan database secara berkala untuk keamanan data.</p>
                     </div>
                     <form action="{{ route('pengaturan.backup') }}" method="POST"
                         onsubmit="return confirm('Proses backup mungkin memakan waktu. Lanjutkan?');">
@@ -429,25 +429,25 @@
                     </div>
                 </div>
 
-                <div class="overflow-hidden border border-gray-200 rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-hidden border border-gray-200 dark:border-[#282828] rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                        <thead class="bg-gray-50 dark:bg-[#121212]">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Nama File</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Ukuran</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Tanggal Dibuat
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase">Nama File</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase">Ukuran</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase">Tanggal Dibuat
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Aksi</th>
+                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 dark:text-[#A7A7A7] uppercase">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                             @forelse($backups as $backup)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                         {{ $backup['filename'] }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $backup['size'] }}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-[#A7A7A7]">{{ $backup['size'] }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $backup['date'] }}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-[#A7A7A7]">{{ $backup['date'] }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                         <a href="{{ route('database.backup.download', ['filename' => $backup['filename']]) }}"
@@ -472,18 +472,18 @@
             {{-- 3. KONTEN: INFORMASI SISTEM --}}
             <div x-show="activeTab === 'info'" style="display: none;" x-transition.opacity>
                 <div class="border-b pb-4 mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Informasi Server</h3>
-                    <p class="text-gray-500 text-sm">Detail teknis lingkungan server aplikasi berjalan.</p>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Informasi Server</h3>
+                    <p class="text-gray-500 dark:text-[#A7A7A7] text-sm">Detail teknis lingkungan server aplikasi berjalan.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @foreach ($system_info as $key => $val)
-                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 flex items-center justify-between">
+                        <div class="bg-gray-50 dark:bg-[#121212] p-5 rounded-lg border border-gray-200 dark:border-[#282828] flex items-center justify-between">
                             <div>
                                 <span
                                     class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ $key }}</span>
                                 <span
-                                    class="block text-lg font-mono font-semibold text-gray-800">{{ $val }}</span>
+                                    class="block text-lg font-mono font-semibold text-gray-800 dark:text-white">{{ $val }}</span>
                             </div>
                             <div class="text-gray-300 text-2xl">
                                 <i class="fa-solid fa-server"></i>
@@ -496,14 +496,14 @@
             {{-- 4. KONTEN: UPDATE SISTEM --}}
             <div x-show="activeTab === 'update'" style="display: none;" x-transition.opacity>
                 <div class="border-b pb-4 mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Update Sistem</h3>
-                    <p class="text-gray-500 text-sm">Tarik pembaruan terbaru dari repositori (Git Pull).</p>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Update Sistem</h3>
+                    <p class="text-gray-500 dark:text-[#A7A7A7] text-sm">Tarik pembaruan terbaru dari repositori (Git Pull).</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
                     <i class="fa-brands fa-git-alt text-6xl text-orange-600 mb-4"></i>
-                    <h4 class="text-lg font-bold text-gray-800 mb-2">Pembaruan Aplikasi</h4>
-                    <p class="text-gray-600 mb-6 max-w-lg mx-auto">
+                    <h4 class="text-lg font-bold text-gray-800 dark:text-white mb-2">Pembaruan Aplikasi</h4>
+                    <p class="text-gray-600 dark:text-[#A7A7A7] mb-6 max-w-lg mx-auto">
                         Klik tombol di bawah ini untuk menarik kode terbaru dari server pusat (Git Repository).
                         Pastikan tidak ada perubahan lokal yang konflik.
                     </p>

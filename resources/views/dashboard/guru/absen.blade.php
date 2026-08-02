@@ -8,13 +8,13 @@
 
     <div class="pt-8 px-6">
         <div class="mb-6 text-center">
-            <h1 class="text-2xl font-bold text-gray-800">{{ $data_guru->nama }}</h1>
-            <p class="text-sm text-gray-500">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}</p>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $data_guru->nama }}</h1>
+            <p class="text-sm text-gray-500 dark:text-[#A7A7A7]">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}</p>
         </div>
 
-        <div class="bg-white p-3 rounded-2xl shadow-lg border border-gray-100 mb-6 relative">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-3 rounded-2xl shadow-lg border border-gray-100 dark:border-[#282828] mb-6 relative">
             <div id="status-lokasi"
-                class="absolute top-5 left-1/2 transform -translate-x-1/2 z-400 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-md text-xs font-bold text-gray-600 flex items-center gap-2">
+                class="absolute top-5 left-1/2 transform -translate-x-1/2 z-400 bg-white dark:bg-[#181818] dark:text-white/90 backdrop-blur px-4 py-2 rounded-full shadow-md text-xs font-bold text-gray-600 dark:text-[#A7A7A7] flex items-center gap-2">
                 <i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> Mencari Lokasi...
             </div>
 
@@ -50,12 +50,12 @@
             <input type="hidden" name="longitude" id="longitude">
 
             <div class="bg-indigo-50 rounded-xl p-4 mb-6 text-center border border-indigo-100">
-                <p class="text-xs text-gray-500 mb-1">Koordinat Terdeteksi</p>
+                <p class="text-xs text-gray-500 dark:text-[#A7A7A7] mb-1">Koordinat Terdeteksi</p>
                 <p class="font-mono text-sm font-bold text-indigo-700" id="info-koordinat">- , -</p>
             </div>
 
             <button type="submit" id="btn-absen" disabled
-                class="w-full bg-gray-300 text-gray-500 font-bold py-4 rounded-xl shadow-sm transition-all flex justify-center items-center gap-2 cursor-not-allowed">
+                class="w-full bg-gray-300 text-gray-500 dark:text-[#A7A7A7] font-bold py-4 rounded-xl shadow-sm transition-all flex justify-center items-center gap-2 cursor-not-allowed">
                 <i class="fa-solid fa-location-dot"></i>
                 Lokasi Belum Ditemukan
             </button>
@@ -105,13 +105,13 @@
                 // Update Status UI
                 var statusDiv = document.getElementById('status-lokasi');
                 statusDiv.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i> Lokasi Terkunci';
-                statusDiv.classList.remove('text-gray-600');
+                statusDiv.classList.remove('text-gray-600 dark:text-[#A7A7A7]');
                 statusDiv.classList.add('text-green-700', 'border', 'border-green-200');
 
                 // Aktifkan Tombol Submit
                 var btn = document.getElementById('btn-absen');
                 btn.disabled = false;
-                btn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.remove('bg-gray-300', 'text-gray-500 dark:text-[#A7A7A7]', 'cursor-not-allowed');
                 btn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'shadow-lg',
                     'shadow-indigo-200');
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Absen Sekarang';

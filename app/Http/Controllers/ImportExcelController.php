@@ -169,7 +169,7 @@ class ImportExcelController extends Controller
             $tempat_lahir = trim($row[3] ?? '');
             $raw_tanggal  = $row[4] ?? null;
             $no_wa        = trim($row[5] ?? '');
-            $password     = trim($row[6] ?? '');
+            $password     = trim($row[0] ?? '');
 
             // 1. Validasi Dasar
             if (empty($nip) || empty($nama) || empty($password)) {

@@ -35,7 +35,7 @@
     class="bg-gradient-to-r from-green-500 to-green-700 flex flex-col items-center justify-center min-h-screen font-sans px-4">
 
     <div
-        class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-in-out">
+        class="bg-white dark:bg-[#181818] dark:text-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-in-out">
         <div class="text-center mb-4">
             @if ($profil)
                 <img src="{{ asset('storage/' . ($profil->logo_sekolah ? $profil->logo_sekolah : 'logo')) }}"
@@ -48,7 +48,7 @@
             @endif
         </div>
 
-        <h2 class="text-2xl font-semibold text-center mb-5 text-gray-700">Login Absensi</h2>
+        <h2 class="text-2xl font-semibold text-center mb-5 text-gray-700 dark:text-gray-200">Login Absensi</h2>
 
         <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-3 mb-4 rounded-md text-sm">
             📌 <strong>Fokus Aplikasi:</strong> Mempermudah Administrasi Kesiswaan & mendukung Tupoksi Wali Kelas.
@@ -62,12 +62,12 @@
             <div class="mb-4">
                 <label for="username" class="sr-only">Username</label>
                 <input type="text" id="username" name="username" placeholder="Username" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-[#333333] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150 ease-in-out">
             </div>
             <div class="mb-5">
                 <label for="password" class="sr-only">Password</label>
                 <input type="password" id="password" name="password" placeholder="Password" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-[#333333] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150 ease-in-out">
             </div>
             <button type="submit" id="loginButton"
                 class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out flex items-center justify-center">

@@ -3,15 +3,15 @@
 @section('title', 'Scan Absensi')
 
 @section('content')
-    <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-gray-50 dark:bg-[#121212] py-8 px-4 sm:px-6 lg:px-8">
 
         <div class="max-w-md mx-auto">
 
-            <h2 class="mb-6 text-2xl font-bold text-gray-800 tracking-tight">
+            <h2 class="mb-6 text-2xl font-bold text-gray-800 dark:text-white tracking-tight">
                 <i class="fa-solid fa-qrcode mr-2 text-green-600"></i>Absensi
             </h2>
 
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative mb-6">
+            <div class="bg-white dark:bg-[#181818] dark:text-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-[#282828] relative mb-6">
                 <div class="bg-green-600 px-4 py-3 flex items-center justify-between">
                     <span class="text-white font-medium text-sm flex items-center gap-2">
                         <i class="fa-solid fa-camera"></i> Kamera Belakang
@@ -48,8 +48,8 @@
                     </div>
                 </div>
 
-                <div class="bg-gray-50 px-4 py-3 text-center border-t border-gray-100">
-                    <p class="text-xs text-gray-500">
+                <div class="bg-gray-50 dark:bg-[#121212] px-4 py-3 text-center border-t border-gray-100 dark:border-[#282828]">
+                    <p class="text-xs text-gray-500 dark:text-[#A7A7A7]">
                         Arahkan kamera ke QR Code Kartu Pelajar
                     </p>
                 </div>
@@ -59,7 +59,7 @@
                 <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider ml-1">Aktivitas Terkini</h3>
 
                 <div id="result-container" class="space-y-3 min-h-25">
-                    <div id="empty-state" class="text-center py-8 bg-white rounded-xl border border-dashed border-gray-300">
+                    <div id="empty-state" class="text-center py-8 bg-white dark:bg-[#181818] dark:text-white rounded-xl border border-dashed border-gray-300 dark:border-[#333333]">
                         <div class="text-gray-300 mb-2">
                             <i class="fa-solid fa-clock-rotate-left text-3xl"></i>
                         </div>
@@ -189,14 +189,14 @@
             // (Sederhana: kita percaya output controller aman karena kita yang buat)
 
             const cardHTML = `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${borderColor} flex items-start gap-4 transition-all duration-500 animate-fade-in-down">
+                <div class="bg-white dark:bg-[#181818] dark:text-white p-4 rounded-xl shadow-sm border border-gray-100 dark:border-[#282828] border-l-4 ${borderColor} flex items-start gap-4 transition-all duration-500 animate-fade-in-down">
                     <div class="flex-shrink-0">
                         <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center">
                             <i class="fa-solid ${iconClass} text-xl"></i>
                         </div>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="text-sm font-bold text-gray-800 break-words leading-snug">
+                        <div class="text-sm font-bold text-gray-800 dark:text-white break-words leading-snug">
                             ${message} 
                         </div>
                         <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">

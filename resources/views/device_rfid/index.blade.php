@@ -39,12 +39,12 @@
         @endphp
 
         {{-- FORM INPUT --}}
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6 scroll-mt-20">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-6 rounded-lg shadow-md mb-6 scroll-mt-20">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white">
                     {{ $card_title }}
                     @if ($is_edit)
-                        <span class="text-sm font-normal text-gray-500">(Edit: {{ $device_rfid_edit->rfid_name }})</span>
+                        <span class="text-sm font-normal text-gray-500 dark:text-[#A7A7A7]">(Edit: {{ $device_rfid_edit->rfid_name }})</span>
                     @endif
                 </h2>
 
@@ -62,13 +62,13 @@
                 @endif
 
                 <div class="flex-grow">
-                    <label for="rfid_name" class="block text-sm font-medium text-gray-700">Nama Device</label>
+                    <label for="rfid_name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nama Device</label>
                     <input type="text" id="rfid_name" name="rfid_name"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         placeholder="Contoh: Gerbang Utama, Perpustakaan" required
                         value="{{ old('rfid_name', $is_edit ? $device_rfid_edit->rfid_name : '') }}">
                     @if (!$is_edit)
-                        <p class="text-xs text-gray-500 mt-1">*API Key akan digenerate otomatis setelah disimpan.</p>
+                        <p class="text-xs text-gray-500 dark:text-[#A7A7A7] mt-1">*API Key akan digenerate otomatis setelah disimpan.</p>
                     @endif
                 </div>
 
@@ -80,46 +80,46 @@
         </div>
 
         {{-- TABEL DATA --}}
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-white dark:bg-[#181818] dark:text-white rounded-lg shadow-md overflow-hidden">
             <div class="px-6 py-4 border-b">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Daftar Device RFID</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">Daftar Device RFID</h3>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                    <thead class="bg-gray-100 dark:bg-[#282828]">
                         <tr>
                             <th
-                                class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/12">
+                                class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider w-1/12">
                                 No</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-1/4">
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider w-1/4">
                                 Nama Device</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">API Key
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider">API Key
                                 (Token)</th>
                             <th
-                                class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/5">
+                                class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider w-1/5">
                                 Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                         @php $no = 1; @endphp
                         @if ($data_device_rfid->count() == 0)
                             <tr>
-                                <td colspan='4' class='px-4 py-4 text-center text-gray-500'>Belum ada device terdaftar.
+                                <td colspan='4' class='px-4 py-4 text-center text-gray-500 dark:text-[#A7A7A7]'>Belum ada device terdaftar.
                                 </td>
                             </tr>
                         @else
                             @foreach ($data_device_rfid as $row)
                                 <tr
-                                    class="hover:bg-gray-50 {{ isset($device_rfid_edit) && $device_rfid_edit->id == $row->id ? 'bg-blue-50' : '' }}">
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                    class="hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] {{ isset($device_rfid_edit) && $device_rfid_edit->id == $row->id ? 'bg-blue-50' : '' }}">
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 text-center">
                                         {{ $no++ }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                         {{ $row->rfid_name }}</td>
                                     <td
-                                        class="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-600 bg-gray-50 rounded select-all">
+                                        class="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-600 dark:text-[#A7A7A7] bg-gray-50 dark:bg-[#121212] rounded select-all">
                                         <div class="flex items-center gap-2">
                                             <code
-                                                class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-mono text-xs select-all border border-gray-200">
+                                                class="bg-gray-100 dark:bg-[#282828] px-2 py-1 rounded text-gray-600 dark:text-[#A7A7A7] font-mono text-xs select-all border border-gray-200 dark:border-[#282828]">
                                                 {{ $row->api_key }}
                                             </code>
 

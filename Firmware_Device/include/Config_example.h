@@ -8,7 +8,7 @@
 // =============================
 #define SS_RFID D4
 #define RST_RFID D3
-#define SS_SD D8
+// #define SS_SD D8
 #define SDA_PIN D2
 #define SCL_PIN D1
 #define BUZZER_PIN D0

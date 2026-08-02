@@ -2,17 +2,17 @@
 
 @section('content')
 <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-3xl mx-auto">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Hari Libur</h2>
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Edit Hari Libur</h2>
 
     <form action="{{ route('hari-libur.update', $hariLibur->id) }}" method="POST">
         @csrf
         @method('PUT')
-        <div class="bg-white shadow rounded-lg p-6 space-y-5">
+        <div class="bg-white dark:bg-[#181818] dark:text-white shadow rounded-lg p-6 space-y-5">
             {{-- Tanggal --}}
             <div>
-                <label for="tanggal" class="block text-sm font-medium text-gray-700 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                <label for="tanggal" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tanggal <span class="text-red-500">*</span></label>
                 <input type="date" name="tanggal" id="tanggal" 
-                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('tanggal') border-red-500 @enderror"
+                       class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('tanggal') border-red-500 @enderror"
                        value="{{ old('tanggal', $hariLibur->tanggal->format('Y-m-d')) }}" required>
                 @error('tanggal')
                     <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
@@ -21,9 +21,9 @@
 
             {{-- Keterangan --}}
             <div>
-                <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-1">Keterangan <span class="text-gray-400 text-xs">(opsional)</span></label>
+                <label for="keterangan" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Keterangan <span class="text-gray-400 text-xs">(opsional)</span></label>
                 <input type="text" name="keterangan" id="keterangan" 
-                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('keterangan') border-red-500 @enderror"
+                       class="block w-full rounded-md border-gray-300 dark:border-[#333333] shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('keterangan') border-red-500 @enderror"
                        value="{{ old('keterangan', $hariLibur->keterangan) }}" maxlength="100" placeholder="Misal: Hari Raya Idul Fitri">
                 @error('keterangan')
                     <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
@@ -40,7 +40,7 @@
                     Perbarui
                 </button>
                 <a href="{{ route('hari-libur.index') }}" 
-                   class="inline-flex items-center px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-md transition">
+                   class="inline-flex items-center px-5 py-2.5 bg-gray-200 dark:bg-[#333333] hover:bg-gray-300 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-md transition">
                     Kembali
                 </a>
             </div>

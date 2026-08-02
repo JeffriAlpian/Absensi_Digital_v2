@@ -4,7 +4,7 @@
 <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
     {{-- Header --}}
     <div class="sm:flex sm:items-center sm:justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Data Hari Libur</h2>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Data Hari Libur</h2>
         <a href="{{ route('hari-libur.create') }}" 
            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition mt-3 sm:mt-0">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,25 +22,25 @@
     @endif
 
     {{-- Tabel --}}
-    <div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="bg-white dark:bg-[#181818] dark:text-white shadow rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                <thead class="bg-gray-50 dark:bg-[#121212]">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">No</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">Keterangan</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                     @forelse($hariLibur as $key => $item)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $key + 1 }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{{ $key + 1 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                 {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                 {{ $item->keterangan ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -69,7 +69,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-10 text-center text-gray-500">
+                            <td colspan="4" class="px-6 py-10 text-center text-gray-500 dark:text-[#A7A7A7]">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-3-3v6m-7 7h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

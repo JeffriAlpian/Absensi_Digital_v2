@@ -64,7 +64,7 @@
 
         {{-- FORM FILTER PENCARIAN & KELAS --}}
         <form method="GET" action="{{ route('siswa.index') }}" class="flex flex-col md:flex-row gap-2 mb-4">
-            <select name="kelas_id" class="border rounded-md px-3 py-2 focus:ring-green-500 bg-white"
+            <select name="kelas_id" class="border rounded-md px-3 py-2 focus:ring-green-500 bg-white dark:bg-[#181818] dark:text-white"
                 onchange="this.form.submit()">
                 <option value="">-- Semua Kelas --</option>
                 @foreach ($kelas as $k)
@@ -81,7 +81,7 @@
             </div>
 
             <button type="submit"
-                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition shadow">
+                class="bg-gray-200 dark:bg-[#333333] hover:bg-gray-300 text-gray-800 dark:text-white px-4 py-2 rounded-md transition shadow">
                 Filter
             </button>
         </form>
@@ -103,13 +103,13 @@
                 </button>
             </div>
 
-            <div class="bg-white rounded-lg shadow overflow-x-auto">
+            <div class="bg-white dark:bg-[#181818] dark:text-white rounded-lg shadow overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-100">
+                    <thead class="bg-gray-100 dark:bg-[#282828]">
                         <tr>
                             <th class="p-3 w-10 text-center">
                                 <input type="checkbox" id="checkAll"
-                                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                    class="w-4 h-4 text-green-600 border-gray-300 dark:border-[#333333] rounded focus:ring-green-500">
                             </th>
 
                             <th class="p-3">Foto</th>
@@ -122,10 +122,10 @@
                     </thead>
                     <tbody>
                         @forelse ($data_siswa as $siswa)
-                            <tr class="border-b hover:bg-gray-50">
+                            <tr class="border-b hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212]">
                                 <td class="p-3 text-center">
                                     <input type="checkbox" name="ids[]" value="{{ $siswa->id }}"
-                                        class="checkItem w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                        class="checkItem w-4 h-4 text-green-600 border-gray-300 dark:border-[#333333] rounded focus:ring-green-500">
                                 </td>
                                 <td class="p-3">
                                     @if($siswa->foto)
@@ -133,14 +133,14 @@
                                             class="w-10 h-10 object-cover rounded-full">
                                     @else
                                         <div
-                                            class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-xs">
+                                            class="w-10 h-10 bg-gray-200 dark:bg-[#333333] rounded-full flex items-center justify-center text-gray-500 dark:text-[#A7A7A7] text-xs">
                                             Kosong</div>
                                     @endif
                                 </td>
                                 <td class="p-3">{{ $siswa->nis }}</td>
                                 <td class="p-3">
                                     <div class="font-bold">{{ $siswa->nama }}</div>
-                                    <div class="text-xs text-gray-500">{{ $siswa->nisn }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-[#A7A7A7]">{{ $siswa->nisn }}</div>
                                 </td>
                                 <td class="p-3">{{ $siswa->kelas->nama_kelas ?? '-' }}</td>
                                 <td class="p-3">
@@ -161,7 +161,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="p-4 text-center text-gray-500">Data tidak ditemukan.</td>
+                                <td colspan="6" class="p-4 text-center text-gray-500 dark:text-[#A7A7A7]">Data tidak ditemukan.</td>
                             </tr>
                         @endforelse
                     </tbody>

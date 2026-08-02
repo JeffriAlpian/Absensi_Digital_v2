@@ -3,14 +3,14 @@
 @section('title', 'Tambah Siswa')
 
 @section('content')
-    <div class="bg-white p-6 rounded-lg shadow-md">
+    <div class="bg-white dark:bg-[#181818] dark:text-white p-6 rounded-lg shadow-md">
         <h2 class="text-xl font-bold mb-4">Tambah Siswa Baru</h2>
 
         <form action="{{ route('siswa.store') }}" method="POST" enctype="multipart/form-data">
             @csrf <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">NIS</label>
-                    <input type="text" name="nis" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">NIS</label>
+                    <input type="text" name="nis" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2" required>
                     @error('nis')
                         <div class="text-red-600 text-sm mt-1">
                             <i class="fa-solid fa-circle-exclamation mr-1"></i>
@@ -20,8 +20,8 @@
 
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">NISN</label>
-                    <input type="text" name="nisn" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">NISN</label>
+                    <input type="text" name="nisn" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2" required>
                     @error('nisn')
                         <div class="text-red-600 text-sm mt-1">
                             <i class="fa-solid fa-circle-exclamation mr-1"></i>
@@ -30,26 +30,26 @@
                     @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama</label>
-                    <input type="text" name="nama" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nama</label>
+                    <input type="text" name="nama" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Tempat Lahir</label>
-                    <input type="text" name="tempat_lahir" class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Tempat Lahir</label>
+                    <input type="text" name="tempat_lahir" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2"
                         required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Tanggal Lahir</label>
+                    <input type="date" name="tanggal_lahir" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2"
                         required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">No WA</label>
-                    <input type="text" name="no_wa" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">No WA</label>
+                    <input type="text" name="no_wa" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kelas</label>
-                    <select name="id_kelas" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Kelas</label>
+                    <select name="id_kelas" class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2">
                         @foreach ($kelas as $k)
                             <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
                         @endforeach
@@ -63,9 +63,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Foto Siswa</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Foto Siswa</label>
                     <input type="file" name="foto" accept="image/*"
-                        class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        class="mt-1 block w-full border border-gray-300 dark:border-[#333333] rounded-md p-2">
                     @error('foto')
                         <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                     @enderror

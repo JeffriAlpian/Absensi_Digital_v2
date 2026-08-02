@@ -59,9 +59,9 @@
 
             {{-- KOLOM KIRI: Kartu Profil --}}
             <div class="xl:col-span-1">
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                <div class="bg-white dark:bg-[#181818] dark:text-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 bg-gray-50 dark:bg-[#121212] border-b border-gray-200 dark:border-[#282828]">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                             Foto Profil
                         </h3>
                     </div>
@@ -70,13 +70,13 @@
                              src="https://ui-avatars.com/api/?name={{ urlencode($user->name ?? $user->username) }}&background=random&size=128"
                              alt="Profile Avatar">
 
-                        <h4 class="text-xl font-bold text-gray-900">{{ $user->name ?? $user->username }}</h4>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">{{ ucfirst($user->role) }}</p>
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-white">{{ $user->name ?? $user->username }}</h4>
+                        <p class="text-sm font-medium text-gray-500 dark:text-[#A7A7A7] uppercase tracking-wide">{{ ucfirst($user->role) }}</p>
 
-                        <div class="mt-6 border-t border-gray-100 pt-4 text-left">
+                        <div class="mt-6 border-t border-gray-100 dark:border-[#282828] pt-4 text-left">
                             <div class="mb-3">
                                 <span class="block text-xs font-medium text-gray-400 uppercase">Username</span>
-                                <span class="block text-sm font-semibold text-gray-700">{{ $user->username }}</span>
+                                <span class="block text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $user->username }}</span>
                             </div>
                         </div>
                     </div>
@@ -85,9 +85,9 @@
 
             {{-- KOLOM KANAN: Form Edit --}}
             <div class="xl:col-span-2">
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                <div class="bg-white dark:bg-[#181818] dark:text-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 bg-gray-50 dark:bg-[#121212] border-b border-gray-200 dark:border-[#282828]">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                             Edit Profil & Keamanan
                         </h3>
                     </div>
@@ -101,43 +101,43 @@
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label for="input-username" class="block text-sm font-medium text-gray-700">Username</label>
+                                        <label for="input-username" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
                                         <input type="text" name="username" id="input-username" 
-                                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"
+                                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-[#333333] rounded-md p-2 border"
                                                placeholder="Username" 
                                                value="{{ old('username', $user->username) }}" required>
                                     </div>
                                     {{-- <div>
-                                        <label for="input-name" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                                        <label for="input-name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nama Lengkap</label>
                                         <input type="text" name="name" id="input-name" ... >
                                     </div> --}}
                                 </div>
                             </div>
 
-                            <hr class="border-gray-200 my-6">
+                            <hr class="border-gray-200 dark:border-[#282828] my-6">
 
                             <div class="mb-6">
                                 <h6 class="text-sm text-gray-400 font-bold uppercase tracking-wider mb-4">Ganti Password (Opsional)</h6>
                                 
                                 <div class="mb-4">
-                                    <label for="current_password" class="block text-sm font-medium text-gray-700">Password Saat Ini</label>
+                                    <label for="current_password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Password Saat Ini</label>
                                     <input type="password" name="current_password" id="current_password" 
-                                           class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"
+                                           class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-[#333333] rounded-md p-2 border"
                                            placeholder="Isi jika ingin ganti password">
-                                    <p class="mt-1 text-xs text-gray-500">Kosongkan jika tidak ingin mengganti password.</p>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-[#A7A7A7]">Kosongkan jika tidak ingin mengganti password.</p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label for="new_password" class="block text-sm font-medium text-gray-700">Password Baru</label>
+                                        <label for="new_password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Password Baru</label>
                                         <input type="password" name="new_password" id="new_password" 
-                                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"
+                                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-[#333333] rounded-md p-2 border"
                                                placeholder="Password Baru">
                                     </div>
                                     <div>
-                                        <label for="new_password_confirmation" class="block text-sm font-medium text-gray-700">Konfirmasi Password</label>
+                                        <label for="new_password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Konfirmasi Password</label>
                                         <input type="password" name="new_password_confirmation" id="new_password_confirmation" 
-                                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"
+                                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-[#333333] rounded-md p-2 border"
                                                placeholder="Ulangi Password Baru">
                                     </div>
                                 </div>

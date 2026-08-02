@@ -4,12 +4,12 @@
 @section('content')
     <div class="space-y-6">
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-5 rounded-xl shadow-sm border border-gray-100 dark:border-[#282828]">
             <form action="{{ route('rekap.bulanan') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-center">
 
                 <div class="w-full md:w-auto">
                     <label class="block text-xs font-bold text-gray-400 mb-1">Kategori</label>
-                    <select name="kategori" class="p-2 w-full border-gray-300 rounded-lg text-sm bg-gray-50"
+                    <select name="kategori" class="p-2 w-full border-gray-300 dark:border-[#333333] rounded-lg text-sm bg-gray-50 dark:bg-[#121212]"
                         onchange="this.form.submit()">
                         <option value="siswa" {{ $kategori == 'siswa' ? 'selected' : '' }}>Siswa</option>
                         <option value="guru" {{ $kategori == 'guru' ? 'selected' : '' }}>Guru</option>
@@ -19,7 +19,7 @@
                 @if ($kategori == 'siswa')
                     <div class="w-full md:w-auto">
                         <label class="block text-xs font-bold text-gray-400 mb-1">Kelas</label>
-                        <select name="kelas_id" class="p-2 w-full border-gray-300 rounded-lg text-sm bg-gray-50">
+                        <select name="kelas_id" class="p-2 w-full border-gray-300 dark:border-[#333333] rounded-lg text-sm bg-gray-50 dark:bg-[#121212]">
                             <option value="">Semua Kelas</option>
                             @foreach ($kelasList as $k)
                                 <option value="{{ $k->id }}" {{ $kelasId == $k->id ? 'selected' : '' }}>
@@ -32,7 +32,7 @@
                 <div class="flex gap-2">
                     <div>
                         <label class="block text-xs font-bold text-gray-400 mb-1">Bulan</label>
-                        <select name="bulan" class="p-2 border-gray-300 rounded-lg text-sm bg-gray-50">
+                        <select name="bulan" class="p-2 border-gray-300 dark:border-[#333333] rounded-lg text-sm bg-gray-50 dark:bg-[#121212]">
                             @for ($b = 1; $b <= 12; $b++)
                                 <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>
                                     {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
@@ -43,7 +43,7 @@
                     <div>
                         <label class=" block text-xs font-bold text-gray-400 mb-1">Tahun</label>
                         <input type="number" name="tahun" value="{{ $tahun }}"
-                            class="p-2 border-gray-300 rounded-lg text-sm bg-gray-50">
+                            class="p-2 border-gray-300 dark:border-[#333333] rounded-lg text-sm bg-gray-50 dark:bg-[#121212]">
                     </div>
                 </div>
 
@@ -61,16 +61,16 @@
             </form>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 overflow-x-auto">
+        <div class="bg-white dark:bg-[#181818] dark:text-white rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-[#282828] overflow-x-auto">
             <table class="w-full text-xs border-collapse">
-                <thead class="bg-gray-100 text-gray-700">
+                <thead class="bg-gray-100 dark:bg-[#282828] text-gray-700 dark:text-gray-200">
                     <tr>
-                        <th rowspan="2" class="p-2 border border-gray-300 w-10">No</th>
-                        <th rowspan="2" class="p-2 border border-gray-300 text-left min-w-[200px]">Nama
+                        <th rowspan="2" class="p-2 border border-gray-300 dark:border-[#333333] w-10">No</th>
+                        <th rowspan="2" class="p-2 border border-gray-300 dark:border-[#333333] text-left min-w-[200px]">Nama
                             {{ ucfirst($kategori) }}</th>
-                        <th colspan="{{ $jumlahHari }}" class="p-1 border border-gray-300 text-center">Tanggal
+                        <th colspan="{{ $jumlahHari }}" class="p-1 border border-gray-300 dark:border-[#333333] text-center">Tanggal
                             ({{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }})</th>
-                        <th colspan="4" class="p-1 border border-gray-300 text-center bg-gray-200">Total</th>
+                        <th colspan="4" class="p-1 border border-gray-300 dark:border-[#333333] text-center bg-gray-200 dark:bg-[#333333]">Total</th>
                     </tr>
                     <tr>
                         @for ($i = 1; $i <= $jumlahHari; $i++)
@@ -81,19 +81,19 @@
                                     in_array($dateLoop->format('Y-m-d'), $libur);
                             @endphp
                             <th
-                                class="p-1 border border-gray-300 w-8 text-center {{ $isLibur ? 'bg-red-50 text-red-600' : '' }}">
+                                class="p-1 border border-gray-300 dark:border-[#333333] w-8 text-center {{ $isLibur ? 'bg-red-50 text-red-600' : '' }}">
                                 {{ $i }} <br>
                                 <span
                                     class="text-[9px] font-normal">{{ substr($dateLoop->translatedFormat('D'), 0, 1) }}</span>
                             </th>
                         @endfor
-                        <th class="p-1 border border-gray-300 w-8 bg-green-100">H</th>
-                        <th class="p-1 border border-gray-300 w-8 bg-yellow-100">S</th>
-                        <th class="p-1 border border-gray-300 w-8 bg-blue-100">I</th>
-                        <th class="p-1 border border-gray-300 w-8 bg-red-100">A</th>
+                        <th class="p-1 border border-gray-300 dark:border-[#333333] w-8 bg-green-100">H</th>
+                        <th class="p-1 border border-gray-300 dark:border-[#333333] w-8 bg-yellow-100">S</th>
+                        <th class="p-1 border border-gray-300 dark:border-[#333333] w-8 bg-blue-100">I</th>
+                        <th class="p-1 border border-gray-300 dark:border-[#333333] w-8 bg-red-100">A</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-600">
+                <tbody class="text-gray-600 dark:text-[#A7A7A7]">
                     @forelse($users as $index => $user)
                         @php
                             $h = 0;
@@ -101,9 +101,9 @@
                             $i = 0;
                             $a = 0;
                         @endphp
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-2 border border-gray-200 text-center">{{ $index + 1 }}</td>
-                            <td class="p-2 border border-gray-200 font-medium text-gray-800">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] transition">
+                            <td class="p-2 border border-gray-200 dark:border-[#282828] text-center">{{ $index + 1 }}</td>
+                            <td class="p-2 border border-gray-200 dark:border-[#282828] font-medium text-gray-800 dark:text-white">
                                 {{ $user->nama }}
                                 <div class="text-[10px] text-gray-400">{{ $user->nis ?? $user->nip }}</div>
                             </td>
@@ -118,7 +118,7 @@
                                 @endphp
 
                                 @if ($isLibur)
-                                    <td class="border border-gray-200 bg-gray-100 text-center text-gray-300 select-none">L
+                                    <td class="border border-gray-200 dark:border-[#282828] bg-gray-100 dark:bg-[#282828] text-center text-gray-300 select-none">L
                                     </td>
                                 @elseif($absen)
                                     @php
@@ -160,7 +160,7 @@
                                         }
                                     @endphp
 
-                                    <td class="border border-gray-200 text-center font-bold {{ $bg }} cursor-help transition hover:brightness-95"
+                                    <td class="border border-gray-200 dark:border-[#282828] text-center font-bold {{ $bg }} cursor-help transition hover:brightness-95"
                                         title="{{ $keteranganTooltip }}">
 
                                         {{ $statusTampil }}
@@ -171,18 +171,18 @@
                                 @else
                                     @if ($tglStr <= date('Y-m-d'))
                                         @php $a++; @endphp
-                                        <td class="border border-gray-200 text-center font-bold text-red-600 bg-red-50">A
+                                        <td class="border border-gray-200 dark:border-[#282828] text-center font-bold text-red-600 bg-red-50">A
                                         </td>
                                     @else
-                                        <td class="border border-gray-200 bg-white"></td>
+                                        <td class="border border-gray-200 dark:border-[#282828] bg-white dark:bg-[#181818] dark:text-white"></td>
                                     @endif
                                 @endif
                             @endfor
 
-                            <td class="border border-gray-200 text-center font-bold bg-green-50">{{ $h }}</td>
-                            <td class="border border-gray-200 text-center font-bold bg-yellow-50">{{ $s }}</td>
-                            <td class="border border-gray-200 text-center font-bold bg-blue-50">{{ $i }}</td>
-                            <td class="border border-gray-200 text-center font-bold bg-red-50">{{ $a }}</td>
+                            <td class="border border-gray-200 dark:border-[#282828] text-center font-bold bg-green-50">{{ $h }}</td>
+                            <td class="border border-gray-200 dark:border-[#282828] text-center font-bold bg-yellow-50">{{ $s }}</td>
+                            <td class="border border-gray-200 dark:border-[#282828] text-center font-bold bg-blue-50">{{ $i }}</td>
+                            <td class="border border-gray-200 dark:border-[#282828] text-center font-bold bg-red-50">{{ $a }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -194,7 +194,7 @@
             </table>
         </div>
 
-        <div class="mt-8 flex justify-end text-center text-sm text-gray-600">
+        <div class="mt-8 flex justify-end text-center text-sm text-gray-600 dark:text-[#A7A7A7]">
             <div>
                 <p>{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
                 <p>Kepala Sekolah</p>

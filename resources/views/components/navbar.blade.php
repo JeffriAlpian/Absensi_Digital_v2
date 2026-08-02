@@ -1,98 +1,144 @@
-<nav class="flex-1 overflow-y-auto sidebar-scrollbar p-4">
-    <!-- Dashboard -->
-    <div class="mb-6">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">UTAMA</p>
+<nav style="flex: 1; overflow-y: auto; padding: 8px 0;">
+
+    {{-- UTAMA --}}
+    <div style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: var(--gd-text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; margin-bottom: 8px;">UTAMA</p>
+
         <a href="{{ route('dashboard.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl font-medium mb-2 {{ request()->routeIs('dashboard.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }}">
-            <i class="fas fa-home w-5 text-center"></i>
+            style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 150ms ease, color 150ms ease; margin-bottom: 2px;
+            {{ request()->routeIs('dashboard.index') ? 'background: var(--gd-surface-2); color: var(--gd-text-primary);' : 'color: var(--gd-text-secondary);' }}"
+            onmouseover="if(!this.getAttribute('data-active')) { this.style.background='var(--gd-surface-2)'; this.style.color='var(--gd-text-primary)'; }"
+            onmouseout="if(!this.getAttribute('data-active')) { this.style.background='transparent'; this.style.color='var(--gd-text-secondary)'; }"
+            {{ request()->routeIs('dashboard.index') ? "data-active=1" : "" }}>
+            @if(request()->routeIs('dashboard.index'))
+                <span style="width: 4px; height: 24px; background: var(--gd-primary); border-radius: 9999px; flex-shrink: 0; margin-left: -4px;"></span>
+            @else
+                <span style="width: 4px; flex-shrink: 0;"></span>
+            @endif
+            <i class="fas fa-home" style="width: 16px; text-align: center; font-size: 14px;"></i>
             <span>Dashboard</span>
         </a>
     </div>
 
-    <!-- Data Master -->
-    <div class="mb-6">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">DATA MASTER</p>
-        <a href="{{ route('siswa.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('siswa.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2 ">
-            <i class="fas fa-user-graduate w-5 text-center"></i>
-            <span>Data Siswa</span>
-            <span
-                class="ml-auto bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">{{ $jumlah_siswa }}
-            </span>
-        </a>
-        <a href="{{ route('guru.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('guru.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-chalkboard-teacher w-5 text-center"></i>
-            <span>Data Guru</span>
-            <span
-                class="ml-auto bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">{{ $jumlah_guru }}
-            </span>
-        </a>
-        <a href="{{ route('kartu.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('kartu.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-address-card w-5 text-center"></i>
-            <span>Data Kartu</span>
-        </a>
-        <a href="{{ route('kelas.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('kelas.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-building w-5 text-center"></i>
-            <span>Data Kelas</span>
-        </a>
-        <a href="{{ route('wakel.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('wakel.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-person w-5 text-center"></i>
-            <span>Data Wakel</span>
-        </a>
-        <a href="{{ route('device_rfid.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('device_rfid.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fa-brands fa-nfc-directional w-5 text-center"></i>
-            <span>Data Device RFID</span>
-        </a>
-        <a href="{{ route('hari-libur.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('hari-libur.*') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-calendar-day w-5 text-center"></i>
-            <span>Data Hari Libur</span>
-        </a>
+    {{-- DATA MASTER --}}
+    <div style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: var(--gd-text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; margin-bottom: 8px;">DATA MASTER</p>
+
+        @php
+            $masterLinks = [
+                ['route' => 'siswa.index',       'icon' => 'fas fa-user-graduate',         'label' => 'Data Siswa',       'badge' => $jumlah_siswa ?? null, 'match' => 'siswa.index'],
+                ['route' => 'guru.index',        'icon' => 'fas fa-chalkboard-teacher',    'label' => 'Data Guru',        'badge' => $jumlah_guru ?? null,  'match' => 'guru.index'],
+                ['route' => 'kartu.index',       'icon' => 'fas fa-address-card',          'label' => 'Data Kartu',       'badge' => null,                   'match' => 'kartu.index'],
+                ['route' => 'kelas.index',       'icon' => 'fas fa-building',              'label' => 'Data Kelas',       'badge' => null,                   'match' => 'kelas.index'],
+                ['route' => 'wakel.index',       'icon' => 'fas fa-person',               'label' => 'Data Wakel',       'badge' => null,                   'match' => 'wakel.index'],
+                ['route' => 'device_rfid.index', 'icon' => 'fa-brands fa-nfc-directional', 'label' => 'Device RFID',      'badge' => null,                   'match' => 'device_rfid.index'],
+                ['route' => 'hari-libur.index',  'icon' => 'fas fa-calendar-day',          'label' => 'Hari Libur',       'badge' => null,                   'match' => 'hari-libur.*'],
+            ];
+        @endphp
+
+        @foreach($masterLinks as $link)
+            @php $isActive = request()->routeIs($link['match']); @endphp
+            <a href="{{ route($link['route']) }}"
+                style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 150ms ease, color 150ms ease; margin-bottom: 2px;
+                {{ $isActive ? 'background: var(--gd-surface-2); color: var(--gd-text-primary);' : 'color: var(--gd-text-secondary);' }}"
+                onmouseover="if(!this.getAttribute('data-active')) { this.style.background='var(--gd-surface-2)'; this.style.color='var(--gd-text-primary)'; }"
+                onmouseout="if(!this.getAttribute('data-active')) { this.style.background='transparent'; this.style.color='var(--gd-text-secondary)'; }"
+                {{ $isActive ? "data-active=1" : "" }}>
+                @if($isActive)
+                    <span style="width: 4px; height: 24px; background: var(--gd-primary); border-radius: 9999px; flex-shrink: 0; margin-left: -4px;"></span>
+                @else
+                    <span style="width: 4px; flex-shrink: 0;"></span>
+                @endif
+                <i class="{{ $link['icon'] }}" style="width: 16px; text-align: center; font-size: 13px;"></i>
+                <span style="flex: 1;">{{ $link['label'] }}</span>
+                @if($link['badge'] !== null)
+                    <span style="background: var(--gd-surface-2); color: var(--gd-primary); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--gd-border);">
+                        {{ $link['badge'] }}
+                    </span>
+                @endif
+            </a>
+        @endforeach
     </div>
 
-    <!-- Absensi -->
-    <div class="mb-6">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">ABSENSI</p>
-        <a href="{{ route('absensi.scan.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('absensi.scan.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-qrcode w-5 text-center"></i>
-            <span>Scan Masuk/Pulang</span>
-        </a>
-        <a href="{{ route('absensi.manual.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('absensi.manual.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-pen-to-square w-5 text-center"></i>
-            <span>Input Manual / Izin</span>
-        </a>
+    {{-- ABSENSI --}}
+    <div style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: var(--gd-text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; margin-bottom: 8px;">ABSENSI</p>
 
+        @php
+            $absensiLinks = [
+                ['route' => 'absensi.scan.index',   'icon' => 'fas fa-qrcode',        'label' => 'Scan Masuk/Pulang',  'match' => 'absensi.scan.index'],
+                ['route' => 'absensi.manual.index',  'icon' => 'fas fa-pen-to-square', 'label' => 'Input Manual / Izin','match' => 'absensi.manual.index'],
+            ];
+        @endphp
+
+        @foreach($absensiLinks as $link)
+            @php $isActive = request()->routeIs($link['match']); @endphp
+            <a href="{{ route($link['route']) }}"
+                style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 150ms ease, color 150ms ease; margin-bottom: 2px;
+                {{ $isActive ? 'background: var(--gd-surface-2); color: var(--gd-text-primary);' : 'color: var(--gd-text-secondary);' }}"
+                onmouseover="if(!this.getAttribute('data-active')) { this.style.background='var(--gd-surface-2)'; this.style.color='var(--gd-text-primary)'; }"
+                onmouseout="if(!this.getAttribute('data-active')) { this.style.background='transparent'; this.style.color='var(--gd-text-secondary)'; }"
+                {{ $isActive ? "data-active=1" : "" }}>
+                @if($isActive)
+                    <span style="width: 4px; height: 24px; background: var(--gd-primary); border-radius: 9999px; flex-shrink: 0; margin-left: -4px;"></span>
+                @else
+                    <span style="width: 4px; flex-shrink: 0;"></span>
+                @endif
+                <i class="{{ $link['icon'] }}" style="width: 16px; text-align: center; font-size: 13px;"></i>
+                <span>{{ $link['label'] }}</span>
+            </a>
+        @endforeach
     </div>
 
-    <!-- Laporan -->
-    <div class="mb-6">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">LAPORAN</p>
-        <a href="{{ route('rekap.harian') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('rekap.harian') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-list-check w-5 text-center"></i>
-            <span>Rekap Harian</span>
-        </a>
-        <a href="{{ route('rekap.bulanan') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('rekap.bulanan') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-file-lines w-5 text-center"></i>
-            <span>Rekap Bulanan</span>
-        </a>
+    {{-- LAPORAN --}}
+    <div style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: var(--gd-text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; margin-bottom: 8px;">LAPORAN</p>
+
+        @php
+            $laporanLinks = [
+                ['route' => 'rekap.harian',   'icon' => 'fas fa-list-check',  'label' => 'Rekap Harian',  'match' => 'rekap.harian'],
+                ['route' => 'rekap.bulanan',  'icon' => 'fas fa-file-lines',  'label' => 'Rekap Bulanan', 'match' => 'rekap.bulanan'],
+            ];
+        @endphp
+
+        @foreach($laporanLinks as $link)
+            @php $isActive = request()->routeIs($link['match']); @endphp
+            <a href="{{ route($link['route']) }}"
+                style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 150ms ease, color 150ms ease; margin-bottom: 2px;
+                {{ $isActive ? 'background: var(--gd-surface-2); color: var(--gd-text-primary);' : 'color: var(--gd-text-secondary);' }}"
+                onmouseover="if(!this.getAttribute('data-active')) { this.style.background='var(--gd-surface-2)'; this.style.color='var(--gd-text-primary)'; }"
+                onmouseout="if(!this.getAttribute('data-active')) { this.style.background='transparent'; this.style.color='var(--gd-text-secondary)'; }"
+                {{ $isActive ? "data-active=1" : "" }}>
+                @if($isActive)
+                    <span style="width: 4px; height: 24px; background: var(--gd-primary); border-radius: 9999px; flex-shrink: 0; margin-left: -4px;"></span>
+                @else
+                    <span style="width: 4px; flex-shrink: 0;"></span>
+                @endif
+                <i class="{{ $link['icon'] }}" style="width: 16px; text-align: center; font-size: 13px;"></i>
+                <span>{{ $link['label'] }}</span>
+            </a>
+        @endforeach
     </div>
 
-    <!-- Sistem -->
-    <div class="mb-6">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">SISTEM</p>
+    {{-- SISTEM --}}
+    <div style="margin-bottom: 8px;">
+        <p style="font-size: 11px; font-weight: 700; color: var(--gd-text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; margin-bottom: 8px;">SISTEM</p>
+
+        @php $isActive = request()->routeIs('pengaturan.index'); @endphp
         <a href="{{ route('pengaturan.index') }}"
-            class="flex items-center space-x-3 p-3 rounded-xl {{ request()->routeIs('pengaturan.index') ? 'bg-green-50 text-green-700 border-l-4 border-green-500' : 'text-gray-700 hover:bg-gray-50 hover:text-green-600' }} font-medium mb-2">
-            <i class="fas fa-gear w-5 text-center"></i>
+            style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 150ms ease, color 150ms ease; margin-bottom: 2px;
+            {{ $isActive ? 'background: var(--gd-surface-2); color: var(--gd-text-primary);' : 'color: var(--gd-text-secondary);' }}"
+            onmouseover="if(!this.getAttribute('data-active')) { this.style.background='var(--gd-surface-2)'; this.style.color='var(--gd-text-primary)'; }"
+            onmouseout="if(!this.getAttribute('data-active')) { this.style.background='transparent'; this.style.color='var(--gd-text-secondary)'; }"
+            {{ $isActive ? "data-active=1" : "" }}>
+            @if($isActive)
+                <span style="width: 4px; height: 24px; background: var(--gd-primary); border-radius: 9999px; flex-shrink: 0; margin-left: -4px;"></span>
+            @else
+                <span style="width: 4px; flex-shrink: 0;"></span>
+            @endif
+            <i class="fas fa-gear" style="width: 16px; text-align: center; font-size: 13px;"></i>
             <span>Pengaturan</span>
         </a>
     </div>
+
 </nav>

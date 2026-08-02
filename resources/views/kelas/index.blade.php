@@ -24,11 +24,11 @@
             $btn_icon = $is_edit ? 'fa-save' : 'fa-plus';
         @endphp
 
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6 scroll-mt-20">
+        <div class="bg-white dark:bg-[#181818] dark:text-white p-6 rounded-lg shadow-md mb-6 scroll-mt-20">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white">
                     {{ $card_title }} 
-                    @if($is_edit) <span class="text-sm font-normal text-gray-500">(Sedang mengedit: {{ $kelas_edit->nama_kelas }})</span> @endif
+                    @if($is_edit) <span class="text-sm font-normal text-gray-500 dark:text-[#A7A7A7]">(Sedang mengedit: {{ $kelas_edit->nama_kelas }})</span> @endif
                 </h2>
                 
                 {{-- Tombol Batal Edit (Hanya muncul jika sedang edit) --}}
@@ -47,28 +47,28 @@
                 
                 {{-- INPUT NAMA KELAS --}}
                 <div class="flex-grow">
-                    <label for="nama_kelas" class="block text-sm font-medium text-gray-700">Nama Kelas</label>
+                    <label for="nama_kelas" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nama Kelas</label>
                     {{-- Value: Jika ada old input (validasi gagal), pakai old. Jika tidak, cek apakah mode edit? jika ya pakai data edit. jika tidak, kosong --}}
                     <input type="text" id="nama_kelas" name="nama_kelas"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="Contoh: 7A, 8B" required 
                         value="{{ old('nama_kelas', $is_edit ? $kelas_edit->nama_kelas : '') }}">
                 </div>
                 
                 {{-- INPUT JAM MASUK --}}
                 <div class="flex-grow">
-                    <label for="jam_masuk" class="block text-sm font-medium text-gray-700">Jam Masuk</label>
+                    <label for="jam_masuk" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Jam Masuk</label>
                     <input type="time" id="jam_masuk" name="jam_masuk"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         required 
                         value="{{ old('jam_masuk', $is_edit ? $kelas_edit->jam_masuk : '') }}">
                 </div>
                 
                 {{-- INPUT JAM PULANG --}}
                 <div class="flex-grow">
-                    <label for="jam_pulang" class="block text-sm font-medium text-gray-700">Jam Pulang</label>
+                    <label for="jam_pulang" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Jam Pulang</label>
                     <input type="time" id="jam_pulang" name="jam_pulang"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         required 
                         value="{{ old('jam_pulang', $is_edit ? $kelas_edit->jam_pulang : '') }}">
                 </div>
@@ -81,32 +81,32 @@
         </div>
 
         {{-- Tabel Daftar Kelas --}}
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-white dark:bg-[#181818] dark:text-white rounded-lg shadow-md overflow-hidden">
             <div class="px-6 py-4 border-b">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Daftar Kelas</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">Daftar Kelas</h3>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-[#282828]">
+                    <thead class="bg-gray-100 dark:bg-[#282828]">
                         <tr>
-                            <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/12">No</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama Kelas</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jam Masuk</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jam Pulang</th>
-                            <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/5">Aksi</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider w-1/12">No</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider">Nama Kelas</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider">Jam Masuk</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider">Jam Pulang</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-[#A7A7A7] uppercase tracking-wider w-1/5">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white dark:bg-[#181818] dark:text-white divide-y divide-gray-200 dark:divide-[#282828]">
                         @php $no = 1; @endphp
                         @if ($data_kelas->count() == 0)
-                            <tr><td colspan='5' class='px-4 py-4 text-center text-gray-500'>Belum ada data kelas.</td></tr>
+                            <tr><td colspan='5' class='px-4 py-4 text-center text-gray-500 dark:text-[#A7A7A7]'>Belum ada data kelas.</td></tr>
                         @else
                             @foreach ($data_kelas as $row)
-                                <tr class="hover:bg-gray-50 {{ isset($kelas_edit) && $kelas_edit->id == $row->id ? 'bg-blue-50' : '' }}">
-                                    <td class="px-4 py-2 text-center text-sm text-gray-700">{{ $no++ }}</td>
-                                    <td class="px-4 py-2 text-sm font-medium text-gray-900">{{ $row->nama_kelas }}</td>
-                                    <td class="px-4 py-2 text-sm text-gray-900">{{ $row->jam_masuk }}</td>
-                                    <td class="px-4 py-2 text-sm text-gray-900">{{ $row->jam_pulang }}</td>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-[#282828] dark:bg-[#121212] {{ isset($kelas_edit) && $kelas_edit->id == $row->id ? 'bg-blue-50' : '' }}">
+                                    <td class="px-4 py-2 text-center text-sm text-gray-700 dark:text-gray-200">{{ $no++ }}</td>
+                                    <td class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">{{ $row->nama_kelas }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $row->jam_masuk }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $row->jam_pulang }}</td>
                                     <td class="px-4 py-2 text-center text-sm flex justify-center gap-2">
                                         
                                         {{-- Tombol Edit (Kuning) --}}
